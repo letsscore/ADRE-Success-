@@ -3,49 +3,62 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // =========================================================
-    // COMMON FUNCTIONS
-    // =========================================================
+    // ============================================================
+    // HELPER FUNCTIONS
+    // ============================================================
 
     function signedIn() {
       return request.auth != null;
     }
 
-    function userDoc() {
+    function hasUserProfile() {
+      return signedIn()
+        && exists(
+          /databases/$(database)/documents/users/$(request.auth.uid)
+        );
+    }
+
+    function myUser() {
       return get(
         /databases/$(database)/documents/users/$(request.auth.uid)
       );
     }
 
-    function admin() {
-      return signedIn()
-        && exists(
-          /databases/$(database)/documents/users/$(request.auth.uid)
-        )
-        && userDoc().data.isAdmin == true;
+    function isAdmin() {
+      return hasUserProfile()
+        && myUser().data.isAdmin == true;
     }
 
-    function activeUser() {
-      return signedIn()
-        && exists(
-          /databases/$(database)/documents/users/$(request.auth.uid)
-        )
-        && userDoc().data.suspended != true;
+    function isActiveUser() {
+      return hasUserProfile()
+        && myUser().data.suspended != true;
     }
 
-    function paidUser() {
-      return activeUser()
-        && userDoc().data.plan == "paid";
+    function isPaidUser() {
+      return isActiveUser()
+        && myUser().data.plan == "paid";
     }
 
 
-    // =========================================================
+    // ============================================================
     // USERS
-    // =========================================================
+    // ============================================================
 
     match /users/{uid} {
 
-      // New student registration
+      // ----------------------------------------------------------
+      // NEW ACCOUNT
+      // ----------------------------------------------------------
+      //
+      // A newly registered user is ALWAYS:
+      //   plan      = free
+      //   isAdmin   = false
+      //   suspended = false
+      //
+      // This prevents a user from registering themselves as admin
+      // or paid.
+      // ----------------------------------------------------------
+
       allow create: if signedIn()
         && request.auth.uid == uid
         && request.resource.data.keys().hasOnly([
@@ -57,29 +70,52 @@ service cloud.firestore {
           'createdAt'
         ])
         && request.resource.data.email == request.auth.token.email
-        && request.resource.data.plan == 'free'
+        && request.resource.data.plan == "free"
         && request.resource.data.isAdmin == false
         && request.resource.data.suspended == false;
 
-      // User can read own profile.
-      // Admin can read every profile.
+
+      // ----------------------------------------------------------
+      // READ
+      // ----------------------------------------------------------
+      //
+      // User → own profile only
+      // Admin → all user profiles
+      // ----------------------------------------------------------
+
       allow read: if signedIn()
         && (
           request.auth.uid == uid
-          || admin()
+          || isAdmin()
         );
 
-      // Admin can manage users.
+
+      // ----------------------------------------------------------
+      // UPDATE
+      // ----------------------------------------------------------
       //
-      // Normal user can ONLY change their name.
-      // They cannot change:
-      // - plan
-      // - isAdmin
-      // - suspended
-      // - email
+      // ADMIN:
+      //   Can change:
+      //   - name
+      //   - plan
+      //   - suspended
+      //   - other normal profile fields
+      //
+      //   CANNOT change isAdmin through the website.
+      //
+      // NORMAL USER:
+      //   Can change ONLY their name.
+      //
+      // This prevents users from upgrading themselves,
+      // unsuspending themselves, or becoming administrators.
+      // ----------------------------------------------------------
+
       allow update: if signedIn()
         && (
-          admin()
+          (
+            isAdmin()
+            && request.resource.data.isAdmin == resource.data.isAdmin
+          )
           ||
           (
             request.auth.uid == uid
@@ -93,66 +129,111 @@ service cloud.firestore {
           )
         );
 
-      // Only admin can delete a Firestore user profile.
-      allow delete: if admin();
+
+      // ----------------------------------------------------------
+      // DELETE
+      // ----------------------------------------------------------
+      //
+      // Only admin can remove a Firestore profile.
+      // ----------------------------------------------------------
+
+      allow delete: if isAdmin()
+        && uid != request.auth.uid;
     }
 
 
-    // =========================================================
+    // ============================================================
     // QUESTIONS
-    // =========================================================
+    // ============================================================
 
     match /questions/{questionId} {
 
-      // Admin sees everything.
+      // ----------------------------------------------------------
+      // READ
+      // ----------------------------------------------------------
       //
-      // Free users:
-      //   tier == "free"
+      // Admin:
+      //   Everything
       //
-      // Paid users:
-      //   tier == "free" OR tier == "paid"
-      allow read: if admin()
-        || (
-          activeUser()
+      // Free active user:
+      //   Only tier = free
+      //
+      // Paid active user:
+      //   tier = free OR paid
+      //
+      // IMPORTANT:
+      // Firestore rules are NOT filters.
+      // The website should query one tier at a time.
+      // ----------------------------------------------------------
+
+      allow read: if
+        isAdmin()
+
+        ||
+
+        (
+          isActiveUser()
           && resource.data.tier == "free"
         )
-        || (
-          paidUser()
-          && resource.data.tier == "paid"
+
+        ||
+
+        (
+          isPaidUser()
+          && (
+            resource.data.tier == "free"
+            || resource.data.tier == "paid"
+          )
         );
 
-      // Only admin can add/edit/delete questions.
-      allow create, update, delete: if admin();
+
+      // ----------------------------------------------------------
+      // WRITE
+      // ----------------------------------------------------------
+
+      allow create, update, delete: if isAdmin();
     }
 
 
-    // =========================================================
-    // PDF NOTES / MODEL PAPERS / RESOURCES
-    // =========================================================
+    // ============================================================
+    // RESOURCES
+    // PDF NOTES + MODEL PAPERS
+    // ============================================================
 
     match /resources/{resourceId} {
 
-      // Admin can see everything.
-      // Only paid students can access resources.
-      allow read: if admin()
-        || paidUser();
+      // Admin → all resources
+      // Paid users → resources
+      // Free users → denied
+      allow read: if isAdmin()
+        || isPaidUser();
 
-      // Only admin can add/edit/delete resources.
-      allow create, update, delete: if admin();
+
+      // Only admin can manage resources.
+      allow create, update, delete: if isAdmin();
     }
 
 
-    // =========================================================
+    // ============================================================
     // PAYMENT REQUESTS
-    // =========================================================
+    // ============================================================
 
     match /paymentRequests/{requestId} {
 
-      // Student can submit a payment request.
+      // ----------------------------------------------------------
+      // STUDENT PAYMENT SUBMISSION
+      // ----------------------------------------------------------
       //
-      // Amount MUST be exactly ₹749.50.
-      // Status MUST initially be "pending".
-      allow create: if activeUser()
+      // Exact course price:
+      // ₹749.50
+      //
+      // Initial status:
+      // pending
+      //
+      // User can submit only for their own account.
+      // ----------------------------------------------------------
+
+      allow create: if isActiveUser()
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.amount == 749.50
@@ -168,27 +249,53 @@ service cloud.firestore {
           'createdAt'
         ]);
 
-      // Student can see only their own payment request.
-      // Admin can see all payment requests.
+
+      // ----------------------------------------------------------
+      // READ
+      // ----------------------------------------------------------
+      //
+      // Student → own payment requests
+      // Admin → all payment requests
+      // ----------------------------------------------------------
+
       allow read: if signedIn()
         && (
           resource.data.uid == request.auth.uid
-          || admin()
+          || isAdmin()
         );
 
-      // ONLY admin can approve/reject/edit payment requests.
-      allow update, delete: if admin();
+
+      // ----------------------------------------------------------
+      // PAYMENT VERIFICATION
+      // ----------------------------------------------------------
+      //
+      // ONLY ADMIN can:
+      //   verify
+      //   reject
+      //   edit
+      //   delete
+      // ----------------------------------------------------------
+
+      allow update, delete: if isAdmin();
     }
 
 
-    // =========================================================
+    // ============================================================
     // ACTIVITY LOGS
-    // =========================================================
+    // ============================================================
 
     match /activities/{activityId} {
 
-      // Student can create their own activity log.
-      // Admin can also create logs.
+      // ----------------------------------------------------------
+      // CREATE
+      // ----------------------------------------------------------
+      //
+      // A logged-in user can create an activity record only
+      // for their own UID.
+      //
+      // Admin activity can also be recorded.
+      // ----------------------------------------------------------
+
       allow create: if signedIn()
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.type is string
@@ -218,14 +325,21 @@ service cloud.firestore {
           'added'
         ]);
 
-      // Activity history is ADMIN ONLY.
-      allow read, update, delete: if admin();
+
+      // ----------------------------------------------------------
+      // ADMIN-ONLY ACTIVITY HISTORY
+      // ----------------------------------------------------------
+
+      allow read, update, delete: if isAdmin();
     }
 
 
-    // =========================================================
+    // ============================================================
     // DEFAULT DENY
-    // =========================================================
+    // ============================================================
+    //
+    // Anything not explicitly allowed above is denied.
+    // ============================================================
 
     match /{document=**} {
       allow read, write: if false;
