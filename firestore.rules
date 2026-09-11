@@ -1,0 +1,100 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function admin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    function myUser() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    match /users/{uid} {
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly([
+          'email', 'name', 'plan', 'isAdmin', 'createdAt'
+        ])
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.plan == 'free'
+        && request.resource.data.isAdmin == false;
+
+      allow read: if signedIn() && (request.auth.uid == uid || admin());
+
+      allow update: if signedIn() && (
+        admin()
+        || (
+          request.auth.uid == uid
+          && request.resource.data.email == resource.data.email
+          && request.resource.data.plan == resource.data.plan
+          && request.resource.data.isAdmin == resource.data.isAdmin
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
+        )
+      );
+
+      allow delete: if admin();
+    }
+
+    match /questions/{questionId} {
+      allow read: if signedIn() && (
+        admin()
+        || resource.data.tier == 'free'
+        || (resource.data.tier == 'paid' && myUser().data.plan == 'paid')
+      );
+
+      allow create, update, delete: if admin();
+    }
+
+    match /resources/{resourceId} {
+      allow read: if signedIn() && (
+        admin()
+        || myUser().data.plan == 'paid'
+      );
+
+      allow create, update, delete: if admin();
+    }
+
+    match /paymentRequests/{requestId} {
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.amount == 749.50
+        && request.resource.data.status == 'pending'
+        && request.resource.data.keys().hasOnly([
+          'uid', 'name', 'email', 'amount', 'utr',
+          'paymentDate', 'status', 'createdAt'
+        ]);
+
+      allow read: if signedIn()
+        && (resource.data.uid == request.auth.uid || admin());
+
+      allow update, delete: if admin();
+    }
+
+    match /activities/{activityId} {
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.type is string
+        && request.resource.data.keys().hasOnly([
+          'uid', 'email', 'type', 'name', 'plan', 'isAdmin',
+          'tab', 'score', 'total', 'resourceId', 'title',
+          'resourceType', 'amount', 'utrLast4', 'paymentDate',
+          'targetUid', 'suspended', 'requestId', 'category',
+          'tier', 'questionId', 'createdAt', 'added'
+        ]);
+
+      allow read, update, delete: if admin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
