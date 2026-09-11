@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADRE Success — Assam Direct Recruitment Examination Preparation</title>
+<!-- ADRE Success FINAL build: fixed admin async routing, subject grid navigation, pagination and payment flow -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :root{
+    --tea-green: #234B3B;
+    --tea-green-dark: #153025;
+    --river-blue: #1F5C66;
+    --sunrise: #D79A3C;
+    --sunrise-soft: #EFC98A;
+    --paper: #FAF6ED;
+    --paper-warm: #F1E9D6;
+    --ink: #201C15;
+    --ink-soft: #5A5346;
+    --line: rgba(32,28,21,0.12);
+    --white: #FFFEFB;
+    --red: #B3432B;
+    --serif: 'Newsreader', Georgia, serif;
+    --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.55; -webkit-font-smoothing:antialiased;}
+  a{color:inherit;}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 24px;}
+  .hidden{display:none !important;}
+
+  header{position:sticky; top:0; z-index:50; background:rgba(250,246,237,0.94); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:16px 0; gap:12px; flex-wrap:wrap;}
+  .logo{display:flex; align-items:center; gap:10px; font-family:var(--serif); font-weight:600; font-size:1.2rem;}
+  .logo-mark{width:28px; height:28px; border-radius:50%; background:conic-gradient(from 200deg, var(--sunrise), var(--river-blue) 55%, var(--tea-green) 100%); flex-shrink:0;}
+  .nav-links{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  .navlink{font-size:0.9rem; font-weight:600; color:var(--ink-soft); text-decoration:none; padding:8px 6px; background:none; border:none; cursor:pointer; font-family:var(--sans);}
+  .navlink:hover{color:var(--tea-green-dark);}
+
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:11px 20px; border-radius:999px; font-weight:600; font-size:0.92rem; text-decoration:none; border:1px solid transparent; cursor:pointer; font-family:var(--sans); transition:transform .1s, background .15s;}
+  .btn-primary{background:var(--tea-green-dark); color:var(--white);}
+  .btn-primary:hover{background:var(--tea-green);}
+  .btn-ghost{background:transparent; color:var(--tea-green-dark); border-color:var(--line);}
+  .btn-ghost:hover{border-color:var(--tea-green-dark);}
+  .btn-danger{background:var(--white); color:var(--red); border-color:var(--red);}
+  .btn-danger:hover{background:var(--red); color:var(--white);}
+  .btn-sm{padding:7px 14px; font-size:0.82rem;}
+  .btn-block{width:100%;}
+  .btn:disabled{opacity:0.5; cursor:not-allowed;}
+
+  main{min-height:60vh;}
+  section{padding:56px 0;}
+
+  /* ---- Home ---- */
+  .hero{padding:56px 0 64px; background:radial-gradient(ellipse at top right, rgba(215,154,60,0.16), transparent 55%), var(--paper); border-bottom:1px solid var(--line);}
+  .eyebrow{font-size:0.86rem; color:var(--river-blue); font-weight:600; margin-bottom:14px;}
+  .hero h1{font-family:var(--serif); font-weight:600; font-size:clamp(1.9rem,5vw,2.9rem); line-height:1.1; max-width:16ch;}
+  .hero p.lead{margin-top:18px; font-size:1.05rem; color:var(--ink-soft); max-width:48ch;}
+  .hero-actions{margin-top:26px; display:flex; gap:12px; flex-wrap:wrap;}
+
+  .cover-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:14px; overflow:hidden; margin-top:36px;}
+  .cover-item{background:var(--white); padding:22px 20px;}
+  .cover-item h4{font-family:var(--serif); font-size:1.05rem; margin-bottom:6px;}
+  .cover-item p{font-size:0.88rem; color:var(--ink-soft);}
+
+  .plan-grid{display:grid; grid-template-columns:1fr; gap:20px; margin-top:20px;}
+  @media (min-width:700px){ .plan-grid{grid-template-columns:1fr 1fr;} }
+  .plan-card{background:var(--white); border:1px solid var(--line); border-radius:16px; padding:28px;}
+  .plan-card.featured{background:var(--tea-green-dark); color:var(--paper); border-color:var(--tea-green-dark);}
+  .plan-card h3{font-family:var(--serif); font-size:1.3rem;}
+  .plan-price{font-family:var(--serif); font-size:1.8rem; font-weight:600; margin-top:8px;}
+  .plan-card ul{list-style:none; margin-top:16px; display:flex; flex-direction:column; gap:8px; font-size:0.9rem;}
+  .plan-card li::before{content:"✓ "; color:var(--sunrise); font-weight:700;}
+
+  /* ---- Auth cards ---- */
+  .auth-wrap{display:flex; justify-content:center; padding:48px 0;}
+  .auth-card{background:var(--white); border:1px solid var(--line); border-radius:16px; padding:32px; width:100%; max-width:420px;}
+  .auth-tabs{display:flex; gap:6px; background:var(--paper-warm); padding:4px; border-radius:10px; margin-bottom:22px;}
+  .auth-tab{flex:1; text-align:center; padding:9px; border-radius:8px; border:none; background:none; font-weight:600; font-size:0.88rem; cursor:pointer; color:var(--ink-soft); font-family:var(--sans);}
+  .auth-tab.active{background:var(--white); color:var(--tea-green-dark); box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+  .auth-card h2{font-family:var(--serif); font-size:1.4rem; margin-bottom:6px;}
+  .auth-card p.sub{font-size:0.88rem; color:var(--ink-soft); margin-bottom:20px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:0.84rem; font-weight:600; margin-bottom:6px;}
+  .field input, .field select, .field textarea{width:100%; padding:11px 13px; border:1px solid var(--line); border-radius:9px; font-family:var(--sans); font-size:0.94rem; background:var(--paper);}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--sunrise); border-color:transparent;}
+  .form-msg{font-size:0.85rem; padding:10px 12px; border-radius:8px; margin-bottom:14px;}
+  .form-msg.err{background:#F7E1DB; color:var(--red);}
+  .form-msg.ok{background:#E1EEE3; color:var(--tea-green-dark);}
+
+  .legal-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:24px;}
+  .legal-card h3{font-family:var(--serif);font-size:1.2rem;margin-bottom:10px;}
+  .legal-card p,.legal-card li{font-size:.9rem;color:var(--ink-soft);}
+  .legal-card ul{padding-left:20px;margin-top:10px;}
+  .legal-card li{margin-bottom:6px;}
+
+  /* ---- Dashboard ---- */
+  .dash-head{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:28px;}
+  .dash-head h1{font-family:var(--serif); font-size:1.7rem;}
+  .badge{display:inline-block; font-size:0.75rem; font-weight:700; padding:4px 11px; border-radius:999px; margin-left:8px; vertical-align:middle;}
+  .badge.free{background:var(--paper-warm); color:var(--ink-soft);}
+  .badge.paid{background:var(--sunrise); color:var(--tea-green-dark);}
+
+  .tabs{display:flex; gap:8px; flex-wrap:wrap; border-bottom:1px solid var(--line); margin-bottom:24px;}
+  .tab-btn{padding:10px 4px; margin-right:18px; background:none; border:none; border-bottom:2px solid transparent; font-weight:600; font-size:0.92rem; color:var(--ink-soft); cursor:pointer; font-family:var(--sans);}
+  .tab-btn.active{color:var(--tea-green-dark); border-color:var(--tea-green-dark);}
+
+  .qcard{background:var(--white); border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:14px;}
+  .qcard p.qtext{font-weight:600; margin-bottom:12px; font-size:0.96rem;}
+  .qcard .opt{display:flex; align-items:center; gap:8px; padding:8px 0; font-size:0.9rem;}
+  .qcard .opt input{margin:0;}
+  .qcard .result{margin-top:10px; font-size:0.85rem; font-weight:600; display:none;}
+  .practice-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+  .subject-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:4px 0 12px;margin-bottom:10px;}
+  .subject-btn{width:100%;min-height:44px;padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:var(--white);color:var(--ink-soft);font-weight:700;font-size:.76rem;line-height:1.2;cursor:pointer;font-family:var(--sans);}
+  .subject-btn:last-child{grid-column:1 / -1;}
+  .subject-btn.active{background:var(--tea-green-dark);color:#fff;border-color:var(--tea-green-dark);}
+  @media (min-width:760px){
+    .subject-nav{grid-template-columns:repeat(5,minmax(0,1fr));}
+    .subject-btn:last-child{grid-column:auto;}
+  }
+  .page-info{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:16px;font-size:.82rem;}
+  .page-info span{color:var(--ink-soft);text-align:right;}
+  .practice-pagination{display:flex;justify-content:center;align-items:center;gap:5px;flex-wrap:wrap;margin:22px 0 16px;}
+  .page-number,.page-arrow{min-width:38px;height:38px;padding:0 9px;border:1px solid var(--line);border-radius:9px;background:var(--white);color:var(--ink-soft);font-weight:700;cursor:pointer;font-family:var(--sans);}
+  .page-number.active{background:var(--tea-green-dark);color:#fff;border-color:var(--tea-green-dark);}
+  .page-arrow:disabled{opacity:.45;cursor:not-allowed;}
+  .page-ellipsis{padding:0 3px;color:var(--ink-soft);}
+
+  .qcard.correct .result.right{display:block; color:var(--tea-green-dark);}
+  .qcard.wrong .result.wrong{display:block; color:var(--red);}
+
+  .lock-card{background:var(--paper-warm); border:1px dashed var(--ink-soft); border-radius:14px; padding:32px; text-align:center;}
+  .lock-card h3{font-family:var(--serif); font-size:1.2rem; margin-bottom:8px;}
+  .lock-card p{color:var(--ink-soft); font-size:0.92rem; margin-bottom:18px;}
+
+  .resource-list{display:flex; flex-direction:column; gap:10px;}
+  .resource-item{display:flex; justify-content:space-between; align-items:center; gap:12px; background:var(--white); border:1px solid var(--line); border-radius:10px; padding:14px 18px; flex-wrap:wrap;}
+  .resource-item .rtitle{font-weight:600; font-size:0.94rem;}
+  .resource-item .rmeta{font-size:0.8rem; color:var(--ink-soft);}
+
+  .score-pill{display:inline-block; background:var(--tea-green-dark); color:var(--white); padding:6px 14px; border-radius:999px; font-size:0.85rem; font-weight:600; margin-bottom:16px;}
+
+  /* ---- Admin ---- */
+  .admin-table{width:100%; border-collapse:collapse; background:var(--white); border:1px solid var(--line); border-radius:12px; overflow:hidden; font-size:0.86rem;}
+  .admin-table th, .admin-table td{text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top;}
+  .admin-table th{background:var(--paper-warm); font-size:0.78rem;}
+  .table-scroll{overflow-x:auto; border-radius:12px;}
+  .admin-panel{background:var(--white); border:1px solid var(--line); border-radius:14px; padding:22px; margin-bottom:24px;}
+  .admin-panel h3{font-family:var(--serif); font-size:1.15rem; margin-bottom:16px;}
+  .grid-2{display:grid; grid-template-columns:1fr; gap:12px;}
+  @media (min-width:640px){ .grid-2{grid-template-columns:1fr 1fr;} }
+  .opt-row{display:flex; gap:8px; align-items:center; margin-bottom:8px;}
+  .opt-row input[type=text]{flex:1;}
+  .small-note{font-size:0.8rem; color:var(--ink-soft); margin-top:6px;}
+  .admin-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 24px;}
+  @media (min-width:760px){.admin-stats{grid-template-columns:repeat(3,1fr);}}
+  .stat-card{appearance:none;text-align:left;background:var(--white);border:1px solid var(--line);border-radius:14px;padding:18px;cursor:pointer;font-family:var(--sans);color:var(--ink);}
+  .stat-card:hover{border-color:var(--tea-green);transform:translateY(-1px);}
+  .stat-card strong{display:block;font-family:var(--serif);font-size:1.55rem;color:var(--tea-green-dark);}
+  .stat-card span{display:block;font-size:.78rem;color:var(--ink-soft);margin-top:4px;}
+
+  footer{background:var(--tea-green-dark); color:rgba(250,246,237,0.7); padding:32px 0; margin-top:40px; font-size:0.85rem;}
+  footer .wrap{display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo"><span class="logo-mark"></span>ADRE Success</div>
+    <div class="nav-links" id="navLinks"></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- HOME -->
+  <section id="view-home">
+    <div class="hero">
+      <div class="eyebrow">ADRE Grade III &amp; IV Preparation</div>
+      <h1>Prepare for the Assam Direct Recruitment Exam with a plan built for it.</h1>
+      <p class="lead">Create a free account for 50 online practice questions in every ADRE subject category, or choose Complete Prep for downloadable PDF notes, 365 online practice questions in every ADRE subject category, and 5 downloadable PDF model question papers.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="showAuth('signup')">Create free account</button>
+        <button class="btn btn-ghost" onclick="showAuth('login')">Log in</button>
+      </div>
+      <p style="width:100%; font-size:0.82rem; color:var(--ink-soft); margin-top:2px;">ADRE Grade III &amp; Grade IV preparation • General Knowledge (including Social Studies) • General English • General Mathematics • Basic Computer Knowledge • Mental Ability &amp; Logical Reasoning</p>
+      <div class="cover-grid">
+        <div class="cover-item"><h4>General Knowledge</h4><p>Assam &amp; India GK, current affairs, science, culture and important facts.</p></div>
+        <div class="cover-item"><h4>General Knowledge</h4><p>Includes Assam &amp; Indian history, geography, polity, economy, culture, science, current affairs and social studies.</p></div>
+        <div class="cover-item"><h4>General English</h4><p>Grammar, vocabulary, comprehension and sentence-based questions.</p></div>
+        <div class="cover-item"><h4>General Mathematics</h4><p>Arithmetic, percentages, ratio, profit &amp; loss, algebra and mensuration.</p></div>
+        <div class="cover-item"><h4>Mental Ability &amp; Logical Reasoning</h4><p>Series, coding-decoding, directions, relationships, puzzles and logical reasoning.</p></div>
+      </div>
+    </div>
+
+    <section>
+      <div class="eyebrow">Pick a track</div>
+      <h2 style="font-family:var(--serif); font-size:1.6rem;">Start free. Upgrade any time.</h2>
+      <div class="plan-grid">
+        <div class="plan-card">
+          <h3>Foundation — Free</h3>
+          <div class="plan-price">₹0</div>
+          <ul>
+            <li>50 online practice questions in every ADRE subject category</li>
+            <li>Questions from all 5 core ADRE subject areas</li>
+            <li>Instant online scoring and answer feedback</li>
+          </ul>
+          <button class="btn btn-ghost btn-block" style="margin-top:18px;" onclick="showAuth('signup')">Start free</button>
+        </div>
+        <div class="plan-card featured">
+          <h3>Complete Prep</h3>
+          <div class="plan-price">₹749.50</div>
+          <ul>
+            <li>Downloadable PDF notes covering the ADRE syllabus</li>
+            <li>365 ADRE practice questions online in every ADRE subject category</li>
+            <li>5 downloadable ADRE model question papers in PDF</li>
+            <li>Complete Prep provides 365 online questions per subject category</li>
+          </ul>
+          <button class="btn" style="margin-top:18px; background:var(--sunrise); color:var(--tea-green-dark);" onclick="showAuth('signup')">Get Complete Prep</button><p style="font-size:0.78rem; margin-top:10px; opacity:0.78;">365 questions per subject + PDF notes + 5 PDF model papers</p><p style="font-size:0.78rem; margin-top:6px; opacity:0.78;">UPI: 9678945621 • Admin verification required</p>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- AUTH -->
+  <section id="view-auth" class="hidden">
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <button class="auth-tab" id="tabLogin" onclick="showAuth('login')">Log in</button>
+          <button class="auth-tab" id="tabSignup" onclick="showAuth('signup')">Sign up</button>
+        </div>
+
+        <div id="loginForm">
+          <h2>Welcome back</h2>
+          <p class="sub">Log in to your ADRE Success account.</p>
+          <div id="loginMsg"></div>
+          <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
+          <div class="field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
+          <button class="btn btn-primary btn-block" onclick="handleLogin()">Log in</button>
+        </div>
+
+        <div id="signupForm" class="hidden">
+          <h2>Create your account</h2>
+          <p class="sub">Free ADRE practice forever. Upgrade to Complete Prep any time.</p>
+          <div id="signupMsg"></div>
+          <div class="field"><label>Full name</label><input type="text" id="signupName" placeholder="Your name"></div>
+          <div class="field"><label>Email</label><input type="email" id="signupEmail" placeholder="you@example.com"></div>
+          <div class="field"><label>Password</label><input type="password" id="signupPassword" placeholder="At least 6 characters"></div>
+          <div class="field"><label>Confirm password</label><input type="password" id="signupConfirm" placeholder="Re-enter password"></div>
+          <button class="btn btn-primary btn-block" onclick="handleSignup()">Create account</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="view-about" class="hidden">
+    <div class="dash-head"><h1>About ADRE Success</h1><button class="btn btn-ghost btn-sm" onclick="showView('home')">Back to home</button></div>
+    <div class="legal-card">
+      <h3>Focused ADRE preparation</h3>
+      <p>ADRE Success is an online preparation platform focused exclusively on the Assam Direct Recruitment Examination (ADRE).</p>
+      <p style="margin-top:10px;">The Free course provides 50 online practice questions in each ADRE syllabus subject category. Complete Prep provides 365 online practice questions in each ADRE syllabus subject category, downloadable PDF notes and 5 downloadable PDF model question papers.</p>
+      <p style="margin-top:10px;">ADRE Success is independently operated and is not affiliated with or endorsed by the Assam Direct Recruitment Commission.</p>
+    </div>
+  </section>
+
+  <!-- PRIVACY -->
+  <section id="view-privacy" class="hidden">
+    <div class="dash-head"><h1>Privacy Policy</h1><button class="btn btn-ghost btn-sm" onclick="showView('home')">Back to home</button></div>
+    <div class="legal-card">
+      <h3>Information we collect</h3>
+      <p>When you create an account, ADRE Success stores your name, email address, account plan and account timestamps. Payment verification requests may contain your UTR/transaction ID and payment date.</p>
+      <h3 style="margin-top:18px;">How we use information</h3>
+      <ul>
+        <li>To create and manage your ADRE Success account.</li>
+        <li>To provide Free or Complete Prep access according to your account status.</li>
+        <li>To verify manual UPI payments and provide support.</li>
+        <li>To maintain website security and prevent unauthorized access.</li>
+      </ul>
+      <h3 style="margin-top:18px;">Security</h3>
+      <p>We do not sell your personal information. Firebase is used for authentication and application data. Never send your UPI PIN, OTP, bank password or other confidential banking credentials to us.</p>
+    </div>
+  </section>
+
+  <!-- REFUND -->
+  <section id="view-refund" class="hidden">
+    <div class="dash-head"><h1>Refund Policy</h1><button class="btn btn-ghost btn-sm" onclick="showView('home')">Back to home</button></div>
+    <div class="legal-card">
+      <h3>24-hour refund window</h3>
+      <p>For Complete Prep, a refund request must be submitted within <strong>24 hours of payment</strong>.</p>
+      <ul>
+        <li>Contact support with your registered email, payment date and UTR/transaction ID.</li>
+        <li>Refund eligibility will be checked against the payment and account records.</li>
+        <li>Requests submitted after 24 hours may not be eligible under this policy.</li>
+        <li>Never send your UPI PIN, OTP, password or banking credentials with a refund request.</li>
+      </ul>
+      <p style="margin-top:12px;">Support: supportadresuccess@gmail.com</p>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="view-contact" class="hidden">
+    <div class="dash-head"><h1>Contact Us</h1><button class="btn btn-ghost btn-sm" onclick="showView('home')">Back to home</button></div>
+    <div class="legal-card">
+      <h3>ADRE Success Support</h3>
+      <p>For account issues, payment verification, course access or refund requests:</p>
+      <p style="margin-top:12px;font-size:1rem;"><strong>Email:</strong> <a href="mailto:supportadresuccess@gmail.com">supportadresuccess@gmail.com</a></p>
+      <p style="margin-top:8px;font-size:1rem;"><strong>Payment receipt WhatsApp:</strong> 7002137940</p>
+      <p style="margin-top:12px;font-size:.82rem;">For payment verification, include your registered email and UTR/transaction ID. Never share your UPI PIN or OTP.</p>
+    </div>
+  </section>
+
+  <!-- ASPIRANT DASHBOARD -->
+  <section id="view-dashboard" class="hidden">
+    <div class="dash-head">
+      <h1 id="dashWelcome">Welcome</h1>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="practice" onclick="switchDashTab('practice')">Practice questions</button>
+      <button class="tab-btn" data-tab="notes" onclick="switchDashTab('notes')">PDF notes</button>
+      <button class="tab-btn" data-tab="papers" onclick="switchDashTab('papers')">Model papers</button>
+    </div>
+    <div id="dashPractice"></div>
+    <div id="dashNotes" class="hidden"></div>
+    <div id="dashPapers" class="hidden"></div>
+  </section>
+
+  <!-- ADMIN DASHBOARD -->
+  <section id="view-admin" class="hidden">
+    <div class="dash-head">
+      <h1>ADRE Success — Admin Control Panel</h1><button type="button" class="btn btn-ghost btn-sm" onclick="refreshAdminAccess()">Refresh admin access</button><p class="small-note">Spark plan mode: admin controls use secure Firestore rules. Firebase Authentication deletion and server-side force sign-out require Cloud Functions.</p><p class="small-note">Full account, course, payment and activity controls</p>
+      <button class="btn btn-ghost btn-sm" onclick="adminLogout()">Log out</button>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="aspirants" onclick="switchAdminTab('aspirants')">Aspirants</button>
+      <button class="tab-btn" data-tab="questions" onclick="switchAdminTab('questions')">Questions</button>
+      <button class="tab-btn" data-tab="resources" onclick="switchAdminTab('resources')">Papers &amp; notes</button>
+      <button class="tab-btn" data-tab="payments" onclick="switchAdminTab('payments')">Payments</button>
+      <button class="tab-btn" data-tab="activities" onclick="switchAdminTab('activities')">Activities</button>
+    </div>
+
+    <div id="adminOverview"></div>
+
+    <div id="adminAspirants">
+      <div class="admin-panel">
+        <h3>Registered aspirants</h3>
+        <div class="table-scroll">
+          <table class="admin-table" id="aspirantTable"></table>
+        </div>
+      </div>
+    </div>
+
+    <div id="adminQuestions" class="hidden">
+      <div class="admin-panel">
+        <h3>Add a question</h3>
+        <p class="small-note" id="questionLimits">Free: 0/50 per subject · Paid: 0/365 per subject</p>
+        <div class="grid-2">
+          <div class="field"><label>Category</label>
+            <select id="qCategory">
+              <option>General Knowledge</option>
+              <option>General English</option>
+              <option>General Mathematics</option>
+              <option>Basic Computer Knowledge</option>
+              <option>Mental Ability &amp; Logical Reasoning</option>
+            </select>
+          </div>
+          <div class="field"><label>Tier</label>
+            <select id="qTier"><option value="free">Free</option><option value="paid">Paid</option></select>
+          </div>
+        </div>
+        <div class="field"><label>Question</label><textarea id="qText" rows="2" placeholder="Type the question"></textarea></div>
+        <div id="qOptions">
+          <div class="opt-row"><input type="radio" name="qCorrect" value="0" checked><input type="text" class="qOptInput" placeholder="Option A"></div>
+          <div class="opt-row"><input type="radio" name="qCorrect" value="1"><input type="text" class="qOptInput" placeholder="Option B"></div>
+          <div class="opt-row"><input type="radio" name="qCorrect" value="2"><input type="text" class="qOptInput" placeholder="Option C"></div>
+          <div class="opt-row"><input type="radio" name="qCorrect" value="3"><input type="text" class="qOptInput" placeholder="Option D"></div>
+        </div>
+        <p class="small-note">The Free question bank is built into this HTML and is also seedable into Firestore. Free users can practice immediately even before Firestore seeding. Free course: maximum 50 questions per subject. Paid Complete Prep: maximum 365 online questions per subject. General Knowledge includes Social Studies. Select the radio button next to the correct option.</p>
+        <button class="btn btn-primary" style="margin-top:12px;" onclick="addQuestion()">Add question</button>
+        <button class="btn btn-ghost" style="margin-top:12px; margin-left:8px;" onclick="seedFreeGKQuestions()">Add 50 Free GK Questions</button>
+        <button class="btn btn-ghost" style="margin-top:12px; margin-left:8px;" onclick="seedFreeEnglishQuestions()">Add 50 Free English Questions</button>
+        <button class="btn btn-ghost" style="margin-top:12px; margin-left:8px;" onclick="seedFreeMathQuestions()">Add 50 Free Mathematics Questions</button>
+        <button class="btn btn-ghost" style="margin-top:12px; margin-left:8px;" onclick="seedFreeComputerQuestions()">Add 50 Free Computer Questions</button>
+        <button class="btn btn-ghost" style="margin-top:12px; margin-left:8px;" onclick="seedFreeReasoningQuestions()">Add 50 Free Reasoning Questions</button>
+        <div id="qMsg"></div>
+      </div>
+      <div class="admin-panel">
+        <h3>Existing questions</h3>
+        <div id="questionList"></div>
+      </div>
+    </div>
+
+    <div id="adminPayments" class="hidden">
+      <div class="admin-panel">
+        <h3>Payment verification</h3>
+        <p class="small-note" style="margin-bottom:14px;">
+          Review the student's UTR/payment details and activate Complete Prep only after independently verifying the payment.
+        </p>
+        <div id="paymentRequestsList"><p>Loading…</p></div>
+      </div>
+    </div>
+
+    <div id="adminActivities" class="hidden">
+      <div class="admin-panel">
+        <h3>Aspirant activity log</h3>
+        <p class="small-note" style="margin-bottom:14px;">See account creation, logins, dashboard visits, practice sessions, scores, PDF/model-paper opens, payment submissions and other recorded activity.</p>
+        <div class="grid-2">
+          <div class="field"><label>Filter by activity</label>
+            <select id="activityFilter" onchange="renderActivities()">
+              <option value="all">All activities</option>
+              <option value="signup">Sign up</option>
+              <option value="login">Login</option>
+              <option value="dashboard">Dashboard</option>
+              <option value="practice_start">Practice started</option>
+              <option value="practice_submit">Practice submitted</option>
+              <option value="resource_open">PDF opened/downloaded</option>
+              <option value="payment_submit">Payment submitted</option>
+              <option value="logout">Logout</option>
+            </select>
+          </div>
+          <div class="field"><label>Show recent</label>
+            <select id="activityLimit" onchange="renderActivities()">
+              <option value="100">100</option><option value="250">250</option><option value="500">500</option>
+            </select>
+          </div>
+        </div>
+        <div id="activityList"><p>Loading…</p></div>
+      </div>
+    </div>
+
+    <div id="adminResources" class="hidden">
+      <div class="admin-panel">
+        <h3>Add PDF notes or a model paper</h3>
+        <div class="grid-2">
+          <div class="field"><label>Type</label>
+            <select id="rType"><option value="notes">PDF notes</option><option value="paper">Model question paper (PDF)</option></select>
+          </div>
+          <div class="field"><label>Category / set label</label><input type="text" id="rCategory" placeholder="e.g. General Knowledge, or Set 1"></div>
+        </div>
+        <div class="field"><label>Title</label><input type="text" id="rTitle" placeholder="e.g. Assam History — Complete Notes"></div>
+        <div class="field"><label>Link to the file (PDF hosted elsewhere, e.g. Google Drive)</label><input type="text" id="rLink" placeholder="https://..."></div>
+        <p class="small-note">For model papers, use a direct PDF link. Aspirants will see a Download PDF button in their paid dashboard.</p>
+        <button class="btn btn-primary" style="margin-top:12px;" onclick="addResource()">Add</button>
+        <div id="rMsg"></div>
+      </div>
+      <div class="admin-panel">
+        <h3>Existing papers &amp; notes</h3>
+        <div id="resourceList"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap" style="align-items:center;">
+    <div><span>© 2026 ADRE Success. ADRE preparation platform. Not affiliated with the Assam Direct Recruitment Commission.</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="navlink" style="color:rgba(250,246,237,0.75);" onclick="showView('about')">About</button>
+      <button class="navlink" style="color:rgba(250,246,237,0.75);" onclick="showView('privacy')">Privacy</button>
+      <button class="navlink" style="color:rgba(250,246,237,0.75);" onclick="showView('refund')">Refund</button>
+      <button class="navlink" style="color:rgba(250,246,237,0.75);" onclick="showView('contact')">Contact</button>
+      <button class="navlink" style="color:rgba(250,246,237,0.75);" onclick="goAdmin()">Admin</button>
+    </div>
+  </div>
+</footer>
+
+
+<script>
+/* ================= Firebase setup =================
+   Paste your project's config values below (from
+   Firebase console > Project settings > General > Your apps). */
+const firebaseConfig = {
+  apiKey: "AIzaSyA446iTLv03wavIBJNNvkji-rBKcJ_R2tA",
+  authDomain: "adre-success.firebaseapp.com",
+  projectId: "adre-success",
+  storageBucket: "adre-success.firebasestorage.app",
+  messagingSenderId: "793270515069",
+  appId: "1:793270515069:web:043b318990d747e7194814"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+// Don't persist sessions to browser storage while previewing inside Claude.
+// (Safe to remove this line once the site is hosted on your own domain.)
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+/* ---------------- session (in-memory only) ---------------- */
+let currentUser = null; // { uid, email, name, plan, isAdmin }
+let dashTab = 'practice';
+let adminTab = 'aspirants';
+const ACTIVITY_COLLECTION = 'activities';
+
+function friendlyFirebaseError(err){
+  const map = {
+    'auth/email-already-in-use': 'An account with this email already exists.',
+    'auth/invalid-email': 'That email address looks invalid.',
+    'auth/weak-password': 'Password must be at least 6 characters.',
+    'auth/user-not-found': 'Incorrect email or password.',
+    'auth/wrong-password': 'Incorrect email or password.',
+    'auth/invalid-credential': 'Incorrect email or password.',
+    'auth/too-many-requests': 'Too many attempts — please wait a moment and try again.',
+    'auth/account-disabled': 'This account has been disabled.'
+  };
+  return map[err.code] || err.message || 'Something went wrong. Please try again.';
+}
+
+async function logActivity(type, extra={}){
+  if(!auth.currentUser) return;
+  try{
+    await db.collection(ACTIVITY_COLLECTION).add({
+      uid: auth.currentUser.uid,
+      email: auth.currentUser.email || currentUser?.email || '',
+      type,
+      ...extra,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }catch(err){ console.warn('Activity log failed:', err); }
+}
+
+/* ---------------- nav & view switching ---------------- */
+function renderNav(){
+  const nav = document.getElementById('navLinks');
+  if(!currentUser){
+    nav.innerHTML = `<button class="navlink" onclick="showAuth('login')">Log in</button>
+      <button class="btn btn-primary btn-sm" onclick="showAuth('signup')">Sign up</button>`;
+    return;
+  }
+  let html = `<button class="navlink" onclick="showView('dashboard')">Dashboard</button>`;
+  if(currentUser.isAdmin){
+    html += `<button class="navlink" onclick="goAdmin()">Admin panel</button>`;
+  }
+  html += `<button class="navlink" onclick="logout()">Log out</button>`;
+  nav.innerHTML = html;
+}
+
+function showView(name){
+  ['home','auth','dashboard','admin','about','privacy','refund','contact'].forEach(v=>{
+    document.getElementById('view-'+v).classList.toggle('hidden', v!==name);
+  });
+  window.scrollTo(0,0);
+}
+
+function showAuth(tab){
+  showView('auth');
+  document.getElementById('loginForm').classList.toggle('hidden', tab!=='login');
+  document.getElementById('signupForm').classList.toggle('hidden', tab!=='signup');
+  document.getElementById('tabLogin').classList.toggle('active', tab==='login');
+  document.getElementById('tabSignup').classList.toggle('active', tab==='signup');
+}
+
+/* ---------------- aspirant auth ---------------- */
+async function handleSignup(){
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim().toLowerCase();
+  const pw = document.getElementById('signupPassword').value;
+  const pw2 = document.getElementById('signupConfirm').value;
+  const msg = document.getElementById('signupMsg');
+  msg.innerHTML = '';
+
+  if(!name || !email || !pw){ msg.innerHTML = '<div class="form-msg err">Please fill in every field.</div>'; return; }
+  if(pw.length < 6){ msg.innerHTML = '<div class="form-msg err">Password must be at least 6 characters.</div>'; return; }
+  if(pw !== pw2){ msg.innerHTML = "<div class=\"form-msg err\">Passwords don't match.</div>"; return; }
+
+  try{
+    const cred = await auth.createUserWithEmailAndPassword(email, pw);
+    await db.collection('users').doc(cred.user.uid).set({
+      email, name, plan: 'free', isAdmin: false, suspended: false,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    currentUser = { uid: cred.user.uid, email, name, plan: 'free', isAdmin: false, suspended: false };
+    await logActivity('signup', {name});
+    renderNav();
+    await openDashboard();
+  }catch(err){
+    msg.innerHTML = `<div class="form-msg err">${friendlyFirebaseError(err)}</div>`;
+  }
+}
+
+async function handleLogin(){
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pw = document.getElementById('loginPassword').value;
+  const msg = document.getElementById('loginMsg');
+  msg.innerHTML = '';
+  try{
+    const cred = await auth.signInWithEmailAndPassword(email, pw);
+    const doc = await db.collection('users').doc(cred.user.uid).get();
+    if(!doc.exists){
+      await auth.signOut();
+      throw new Error('Authentication succeeded, but your Firestore profile is missing. An administrator must create users/' + cred.user.uid + ' before this account can use ADRE Success.');
+    }
+    const d = doc.data() || {};
+    if(d.suspended && !d.isAdmin){ await auth.signOut(); throw new Error('Your account is currently suspended. Please contact support.'); }
+    currentUser = { uid: cred.user.uid, email: cred.user.email, name: d.name || '', plan: d.plan || 'free', isAdmin: d.isAdmin === true, suspended: d.suspended === true };
+    await logActivity('login', {name: currentUser.name, plan: currentUser.plan, isAdmin: currentUser.isAdmin});
+    renderNav();
+    if(currentUser.isAdmin) await goAdmin();
+    else await openDashboard();
+  }catch(err){
+    msg.innerHTML = `<div class="form-msg err">${friendlyFirebaseError(err)}</div>`;
+  }
+}
+
+async function logout(){
+  await logActivity('logout');
+  await auth.signOut();
+  currentUser = null;
+  renderNav();
+  showView('home');
+}
+
+async function adminLogout(){
+  await logActivity('admin_logout');
+  await auth.signOut();
+  currentUser = null;
+  renderNav();
+  showView('home');
+}
+
+async function refreshCurrentUserProfile(){
+  if(!auth.currentUser) return null;
+  const ref = db.collection('users').doc(auth.currentUser.uid);
+  const doc = await ref.get();
+  if(!doc.exists) return null;
+  const d = doc.data() || {};
+  currentUser = {
+    uid: auth.currentUser.uid,
+    email: auth.currentUser.email || d.email || '',
+    name: d.name || '',
+    plan: d.plan || 'free',
+    isAdmin: d.isAdmin === true,
+    suspended: d.suspended === true
+  };
+  return currentUser;
+}
+
+async function goAdmin(){
+  if(!auth.currentUser){ showAuth('login'); return; }
+  try{
+    const profile = await refreshCurrentUserProfile();
+    if(!profile){
+      alert('Your Firebase Authentication account exists, but its Firestore user profile does not exist yet. Create users/' + auth.currentUser.uid + ' in Firestore with isAdmin = true, plan = free, suspended = false, email and name, then log out and log in again.');
+      return;
+    }
+    if(!profile.isAdmin){
+      alert('This account is not marked as an administrator. In Firebase Console → Firestore Database → users → your UID, set isAdmin to true. Then log out and log in again.');
+      return;
+    }
+    renderNav();
+    showView('admin');
+    switchAdminTab(adminTab || 'aspirants');
+    await renderAdminOverview();
+  }catch(err){
+    alert('Unable to check admin access: ' + friendlyFirebaseError(err));
+  }
+}
+
+async function refreshAdminAccess(){
+  if(!auth.currentUser){
+    showAuth('login');
+    return;
+  }
+  try{
+    const profile = await refreshCurrentUserProfile();
+    if(!profile){
+      alert('No Firestore profile found for UID: ' + auth.currentUser.uid);
+      return;
+    }
+    if(profile.isAdmin){
+      await goAdmin();
+    }else{
+      alert('Firestore profile found, but isAdmin is not true for UID: ' + auth.currentUser.uid);
+    }
+  }catch(err){
+    alert('Admin profile check failed: ' + friendlyFirebaseError(err));
+  }
+}
+
+/* ---------------- aspirant dashboard ---------------- */
+async function openDashboard(){
+  // Admins are routed to the dedicated control panel, never the student dashboard.
+  if(currentUser && currentUser.isAdmin){
+    await goAdmin();
+    return;
+  }
+  document.getElementById('dashWelcome').innerHTML =
+    `Welcome, ${currentUser.name} <span class="badge ${currentUser.plan}">${currentUser.plan === 'paid' ? 'Complete Prep' : 'Free'}</span>`;
+  showView('dashboard');
+  await logActivity('dashboard', {plan: currentUser.plan});
+  dashTab = 'practice';
+  switchDashTab('practice');
+}
+
+function switchDashTab(tab){
+  dashTab = tab;
+  logActivity('dashboard_tab', {tab});
+  document.querySelectorAll('#view-dashboard .tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.getElementById('dashPractice').classList.toggle('hidden', tab!=='practice');
+  document.getElementById('dashNotes').classList.toggle('hidden', tab!=='notes');
+  document.getElementById('dashPapers').classList.toggle('hidden', tab!=='papers');
+  if(tab==='practice') renderPractice();
+  if(tab==='notes') renderResourcesForAspirant('notes');
+  if(tab==='papers') renderResourcesForAspirant('paper');
+}
+
+async function renderPractice(){
+  const holder = document.getElementById('dashPractice');
+  logActivity('practice_start', {plan: currentUser?.plan || 'free'});
+  holder.innerHTML = '<p>Loading questions…</p>';
+
+  const categories = [
+    'General Knowledge',
+    'General English',
+    'General Mathematics',
+    'Basic Computer Knowledge',
+    'Mental Ability & Logical Reasoning'
+  ];
+
+  const perSubjectLimit = currentUser.plan === 'paid' ? 365 : 50;
+  const tier = currentUser.plan === 'paid' ? 'paid' : 'free';
+
+  let questions = [];
+
+  try {
+    const snap = await db.collection('questions').where('tier','==',tier).get();
+    questions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(err) {
+    console.warn('Firestore question read failed:', err);
+  }
+
+  // Built-in Free question bank. This makes the Free course usable
+  // immediately, even before the admin seeds the same questions into Firestore.
+  if(tier === 'free'){
+    const builtIn = [
+      ...FREE_GK_QUESTIONS.map((q,i)=>({...q, category:'General Knowledge', tier:'free', id:`builtin-gk-${i+1}`})),
+      ...FREE_ENGLISH_QUESTIONS.map((q,i)=>({...q, category:'General English', tier:'free', id:`builtin-eng-${i+1}`})),
+      ...FREE_MATH_QUESTIONS.map((q,i)=>({...q, category:'General Mathematics', tier:'free', id:`builtin-math-${i+1}`})),
+      ...FREE_COMPUTER_QUESTIONS.map((q,i)=>({...q, category:'Basic Computer Knowledge', tier:'free', id:`builtin-computer-${i+1}`})),
+      ...FREE_REASONING_QUESTIONS.map((q,i)=>({...q, category:'Mental Ability & Logical Reasoning', tier:'free', id:`builtin-reasoning-${i+1}`}))
+    ];
+
+    const combined = [];
+    categories.forEach(cat=>{
+      const firestoreCat = questions
+        .filter(q=>q.category===cat)
+        .slice(0, perSubjectLimit);
+
+      const firestoreTexts = new Set(firestoreCat.map(q=>q.question));
+
+      const fallbackCat = builtIn
+        .filter(q=>q.category===cat && !firestoreTexts.has(q.question))
+        .slice(0, Math.max(0, perSubjectLimit - firestoreCat.length));
+
+      combined.push(...firestoreCat, ...fallbackCat);
+    });
+
+    questions = combined;
+  }
+
+  const subjectQuestions = {};
+  categories.forEach(cat=>{
+    subjectQuestions[cat] = questions
+      .filter(q => q.tier === tier && q.category === cat)
+      .slice(0, perSubjectLimit);
+  });
+
+  const availableCategories = categories.filter(cat => subjectQuestions[cat].length > 0);
+
+  if(availableCategories.length === 0){
+    holder.innerHTML = '<p>No questions are available right now.</p>';
+    return;
+  }
+
+  // Keep the current subject/page when possible.
+  if(!window.practiceState){
+    window.practiceState = {category: availableCategories[0], page: 1};
+  }
+
+  if(!availableCategories.includes(window.practiceState.category)){
+    window.practiceState.category = availableCategories[0];
+    window.practiceState.page = 1;
+  }
+
+  const pageSize = 10;
+  const category = window.practiceState.category;
+  const allForCategory = subjectQuestions[category];
+  const totalPages = Math.max(1, Math.ceil(allForCategory.length / pageSize));
+
+  if(window.practiceState.page > totalPages) window.practiceState.page = totalPages;
+  if(window.practiceState.page < 1) window.practiceState.page = 1;
+
+  const page = window.practiceState.page;
+  const startIndex = (page - 1) * pageSize;
+  const pageQuestions = allForCategory.slice(startIndex, startIndex + pageSize);
+
+  // Store only the currently displayed page for checking.
+  window._visibleQuestions = pageQuestions;
+
+  let out = `
+    <div class="practice-header">
+      <div>
+        <div class="score-pill" id="scorePill">Score: —</div>
+        <p class="small-note" style="margin:8px 0 0;">
+          ${tier==='free'
+            ? 'Free course: 50 questions in each subject.'
+            : 'Complete Prep: 365 questions in each subject.'}
+        </p>
+      </div>
+    </div>
+
+    <div class="subject-nav" aria-label="Subjects">
+  `;
+
+  availableCategories.forEach(cat=>{
+    const active = cat === category ? 'active' : '';
+    out += `<button type="button" class="subject-btn ${active}"
+      onclick='openPracticeSubject(${JSON.stringify(cat)});return false;'>${cat}</button>`;
+  });
+
+  out += `</div>
+    <div class="page-info">
+      <strong>${category}</strong>
+      <span>Questions ${startIndex + 1}–${Math.min(startIndex + pageSize, allForCategory.length)} of ${allForCategory.length}</span>
+    </div>
+    <div id="practiceQuestionList">`;
+
+  pageQuestions.forEach((q,idx)=>{
+    const safeId = String(q.id).replace(/[^a-zA-Z0-9_-]/g,'_');
+    q._safeId = safeId;
+
+    out += `<div class="qcard" id="qc-${safeId}">
+      <p class="qtext">${startIndex + idx + 1}. ${q.question} ${q.tier==='paid' ? '<span class="badge paid">Paid</span>' : ''}</p>`;
+
+    (q.options || []).forEach((opt,i)=>{
+      out += `<label class="opt">
+        <input type="radio" name="ans-${safeId}" value="${i}">
+        <span>${opt}</span>
+      </label>`;
+    });
+
+    out += `<div class="result right">Correct!</div>
+      <div class="result wrong">Not quite — correct answer: ${(q.options||[])[q.correct]}</div>
+    </div>`;
+  });
+
+  out += `</div>
+
+    <div class="practice-pagination" aria-label="Question pages">
+      <button type="button" class="page-arrow" ${page===1?'disabled':''}
+        onclick="changePracticePage(${page-1});return false;">‹ Prev</button>`;
+
+  // Keep mobile pagination compact for large paid banks.
+  let pageButtons = [];
+  if(totalPages <= 7){
+    for(let p=1;p<=totalPages;p++) pageButtons.push(p);
+  }else{
+    pageButtons = [1];
+    if(page > 4) pageButtons.push('…');
+    const from = Math.max(2, page-1);
+    const to = Math.min(totalPages-1, page+1);
+    for(let p=from;p<=to;p++) pageButtons.push(p);
+    if(page < totalPages-3) pageButtons.push('…');
+    pageButtons.push(totalPages);
+  }
+
+  pageButtons.forEach(p=>{
+    if(p === '…'){
+      out += `<span class="page-ellipsis">…</span>`;
+    }else{
+      out += `<button type="button" class="page-number ${p===page?'active':''}"
+        onclick="changePracticePage(${p});return false;">${p}</button>`;
+    }
+  });
+
+  out += `<button type="button" class="page-arrow" ${page===totalPages?'disabled':''}
+      onclick="changePracticePage(${page+1});return false;">Next ›</button>
+    </div>
+
+    <button type="button" class="btn btn-primary" onclick="checkAnswers()">Check this page</button>`;
+
+  if(tier==='free'){
+    out += `<div class="lock-card" style="margin-top:22px;">
+      <h3>Want the Complete Prep course?</h3>
+      <p>Get 365 online questions per subject, PDF notes and 5 PDF model papers for ₹749.50.</p>
+      <button type="button" class="btn btn-primary"
+        onclick="openPaymentFromAnyTab();return false;">Upgrade to Complete Prep — ₹749.50</button>
+    </div>`;
+  }
+
+  holder.innerHTML = out;
+}
+
+function openPracticeSubject(category){
+  window.practiceState = {category, page:1};
+  renderPractice();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function changePracticePage(page){
+  window.practiceState = window.practiceState || {category:'General Knowledge', page:1};
+  window.practiceState.page = page;
+  renderPractice();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function checkAnswers(){
+  const questions = window._visibleQuestions || [];
+  let correct = 0;
+
+  questions.forEach(q=>{
+    const safeId = String(q.id).replace(/[^a-zA-Z0-9_-]/g,'_');
+    const picked = document.querySelector(`input[name="ans-${safeId}"]:checked`);
+    const card = document.getElementById('qc-'+safeId);
+    if(!card) return;
+
+    card.classList.remove('correct','wrong');
+
+    if(picked){
+      if(parseInt(picked.value) === q.correct){
+        card.classList.add('correct');
+        correct++;
+      }else{
+        card.classList.add('wrong');
+      }
+    }
+  });
+
+  const pill = document.getElementById('scorePill');
+  if(pill) pill.textContent = `Page score: ${correct} / ${questions.length}`;
+
+  logActivity('practice_submit', {
+    score: correct,
+    total: questions.length,
+    plan: currentUser?.plan || 'free',
+    category: window.practiceState?.category || '',
+    page: window.practiceState?.page || 1
+  });
+}
+async function renderResourcesForAspirant(type){
+  const holder = type==='notes' ? document.getElementById('dashNotes') : document.getElementById('dashPapers');
+  if(currentUser.plan !== 'paid'){
+    holder.innerHTML = `<div class="lock-card">
+      <h3>Complete Prep only</h3>
+      <p>${type==='notes' ? 'Downloadable ADRE PDF notes are' : 'ADRE model question papers are'} part of the paid course.</p>
+      <button class="btn btn-primary" onclick="openPaymentFromAnyTab();return false;">Upgrade to Complete Prep — ₹749.50</button>
+    </div>`;
+    return;
+  }
+  holder.innerHTML = '<p>Loading…</p>';
+  const snap = await db.collection('resources').where('type','==',type).get();
+  const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if(list.length===0){ holder.innerHTML = '<p>Nothing has been uploaded yet — check back soon.</p>'; return; }
+  holder.innerHTML = `<div class="resource-list">` + list.map(r=>`
+    <div class="resource-item">
+      <div><div class="rtitle">${r.title}</div><div class="rmeta">${r.category||''}</div></div>
+      <a href="${r.link}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">${type==='paper' ? 'Download PDF' : 'Open PDF'}</a>
+    </div>`).join('') + `</div>`;
+}
+
+async function upgradeToPaid(){
+  openPaymentFromAnyTab();
+}
+
+async function openPaymentFromAnyTab(){
+  if(!currentUser){
+    showAuth('login');
+    return;
+  }
+
+  // Show the Practice tab without launching a second asynchronous render.
+  dashTab = 'practice';
+  document.querySelectorAll('#view-dashboard .tab-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.tab==='practice');
+  });
+  document.getElementById('dashPractice').classList.remove('hidden');
+  document.getElementById('dashNotes').classList.add('hidden');
+  document.getElementById('dashPapers').classList.add('hidden');
+
+  // Wait for the question renderer to finish BEFORE inserting the payment panel.
+  await renderPractice();
+  showPaymentPanel();
+}
+function showPaymentPanel(){
+  const holder = document.getElementById('dashPractice');
+  const existing = document.getElementById('paymentPanel');
+
+  if(existing){
+    existing.scrollIntoView({behavior:'smooth', block:'start'});
+    return;
+  }
+
+  const panel = document.createElement('div');
+  panel.id = 'paymentPanel';
+  panel.className = 'admin-panel';
+  panel.style.marginBottom = '24px';
+  panel.innerHTML = `
+    <h3>Complete Prep — ₹749.50</h3>
+    <p style="color:var(--ink-soft);font-size:.9rem;margin-bottom:14px;">
+      Pay exactly ₹749.50 by UPI. Access is activated only after admin verification.
+    </p>
+
+    <div style="background:var(--paper-warm);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:.82rem;color:var(--ink-soft);">UPI payment number</div>
+      <div style="font-family:var(--serif);font-size:1.45rem;font-weight:600;margin-top:4px;">9678945621</div>
+      <div style="font-size:.82rem;color:var(--ink-soft);margin-top:6px;">
+        Send exactly ₹749.50, then enter the UTR/transaction ID and payment date.
+      </div>
+    </div>
+
+    <div class="field">
+      <label>UPI transaction / UTR number</label>
+      <input type="text" id="paymentUtr" placeholder="Enter UTR / transaction ID">
+    </div>
+
+    <div class="field">
+      <label>Payment date</label>
+      <input type="date" id="paymentDate">
+    </div>
+
+    <div id="paymentMsg"></div>
+
+    <button type="button" class="btn btn-primary" onclick="submitPaymentRequest()">
+      Submit payment for verification
+    </button>
+    <button type="button" class="btn btn-ghost" style="margin-left:8px;" onclick="closePaymentPanel()">
+      Cancel
+    </button>
+
+    <p class="small-note" style="margin-top:14px;">
+      After submission, send the payment receipt/screenshot to WhatsApp
+      <strong>7002137940</strong>. The admin will cross-verify the payment before activation.
+    </p>
+  `;
+
+  holder.prepend(panel);
+  panel.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function closePaymentPanel(){
+  const panel = document.getElementById('paymentPanel');
+  if(panel) panel.remove();
+}
+
+async function submitPaymentRequest(){
+  if(!currentUser){
+    showAuth('login');
+    return;
+  }
+
+  const utrEl = document.getElementById('paymentUtr');
+  const dateEl = document.getElementById('paymentDate');
+  const msg = document.getElementById('paymentMsg');
+
+  if(!utrEl || !dateEl || !msg) return;
+
+  const utr = utrEl.value.trim();
+  const paymentDate = dateEl.value;
+  msg.innerHTML = '';
+
+  if(!utr || !paymentDate){
+    msg.innerHTML = '<div class="form-msg err">Please enter the UTR/transaction ID and payment date.</div>';
+    return;
+  }
+
+  try{
+    await db.collection('paymentRequests').add({
+      uid: currentUser.uid,
+      name: currentUser.name || '',
+      email: currentUser.email,
+      amount: 749.50,
+      utr,
+      paymentDate,
+      status: 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await logActivity('payment_submit', {
+      amount:749.50,
+      utrLast4:utr.slice(-4),
+      paymentDate
+    });
+
+    msg.innerHTML = `
+      <div class="form-msg ok">
+        Payment submitted for verification. Please send your receipt to WhatsApp
+        <strong>7002137940</strong>. Your Complete Prep access will be activated
+        after admin verification.
+      </div>`;
+  }catch(err){
+    msg.innerHTML = `<div class="form-msg err">${err.message}</div>`;
+  }
+}
+/* ---------------- admin ---------------- */
+async function renderAdminOverview(){
+  const view = document.getElementById('adminOverview');
+  if(!view) return;
+  view.innerHTML = '<div class="admin-stats"><div class="stat-card"><strong>Loading…</strong><span>Aspirants</span></div><div class="stat-card"><strong>—</strong><span>Paid</span></div><div class="stat-card"><strong>—</strong><span>Pending payments</span></div><div class="stat-card"><strong>—</strong><span>Questions</span></div></div>';
+  try{
+    const [usersSnap, paySnap, qSnap, resSnap] = await Promise.all([
+      db.collection('users').get(),
+      db.collection('paymentRequests').get(),
+      db.collection('questions').get(),
+      db.collection('resources').get()
+    ]);
+    const users = usersSnap.docs.map(d=>d.data());
+    const paid = users.filter(u=>u.plan==='paid').length;
+    const pending = paySnap.docs.filter(d=>(d.data().status||'pending')==='pending').length;
+    view.innerHTML = `
+      <div class="admin-stats">
+        <button class="stat-card" onclick="switchAdminTab('aspirants')"><strong>${users.length}</strong><span>Total aspirants</span></button>
+        <button class="stat-card" onclick="switchAdminTab('aspirants')"><strong>${paid}</strong><span>Complete Prep</span></button>
+        <button class="stat-card" onclick="switchAdminTab('payments')"><strong>${pending}</strong><span>Pending payments</span></button>
+        <button class="stat-card" onclick="switchAdminTab('questions')"><strong>${qSnap.size}</strong><span>Questions</span></button>
+        <button class="stat-card" onclick="switchAdminTab('resources')"><strong>${resSnap.size}</strong><span>PDF resources</span></button>
+        <button class="stat-card" onclick="switchAdminTab('activities')"><strong>View</strong><span>Activity logs</span></button>
+      </div>`;
+  }catch(err){
+    view.innerHTML = `<div class="form-msg err">Admin overview could not load: ${friendlyFirebaseError(err)}</div>`;
+  }
+}
+
+function switchAdminTab(tab){
+  adminTab = tab;
+  document.querySelectorAll('#view-admin .tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.getElementById('adminAspirants').classList.toggle('hidden', tab!=='aspirants');
+  document.getElementById('adminQuestions').classList.toggle('hidden', tab!=='questions');
+  document.getElementById('adminResources').classList.toggle('hidden', tab!=='resources');
+  document.getElementById('adminPayments').classList.toggle('hidden', tab!=='payments');
+  document.getElementById('adminActivities').classList.toggle('hidden', tab!=='activities');
+  if(tab==='aspirants') renderAspirantTable();
+  if(tab==='questions') renderQuestionList();
+  if(tab==='resources') renderResourceListAdmin();
+  if(tab==='payments') renderPaymentRequests();
+  if(tab==='activities') renderActivities();
+  renderAdminOverview();
+}
+
+async function renderAspirantTable(){
+  const table = document.getElementById('aspirantTable');
+  table.innerHTML = '<tr><td style="padding:16px;">Loading…</td></tr>';
+  const snap = await db.collection('users').orderBy('createdAt','desc').get();
+  const users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if(users.length===0){ table.innerHTML = '<tr><td style="padding:16px;">No aspirants have signed up yet.</td></tr>'; return; }
+  table.innerHTML = `<tr><th>Name</th><th>Email</th><th>Plan</th><th>Status</th><th>Joined</th><th>Controls</th></tr>` +
+    users.map(u=>`<tr>
+      <td>${u.name||''}</td>
+      <td>${u.email||''}</td>
+      <td><span class="badge ${u.plan}">${u.plan}</span></td>
+      <td>${u.suspended ? '<span class="badge" style="background:#F7E1DB;color:var(--red)">Suspended</span>' : '<span class="badge free">Active</span>'}</td>
+      <td>${u.createdAt ? u.createdAt.toDate().toLocaleDateString() : '—'}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="toggleUserPlan('${u.id}')">Toggle plan</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleUserSuspension('${u.id}')">${u.suspended?'Unsuspend':'Suspend'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="forceSignOutUser('${u.id}')">Force sign-out</button>
+        <button class="btn btn-ghost btn-sm" onclick="viewUserActivity('${u.id}')">Activity</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">Remove</button>
+      </td>
+    </tr>`).join('');
+}
+async function toggleUserPlan(id){
+  const doc = await db.collection('users').doc(id).get();
+  if(!doc.exists) return;
+  const newPlan = doc.data().plan === 'paid' ? 'free' : 'paid';
+  if(!confirm(`Change this aspirant to ${newPlan === 'paid' ? 'Complete Prep' : 'Free'}?`)) return;
+  try{
+    if(id === currentUser.uid){ alert('You cannot change your own admin account plan from this panel.'); return; }
+    await db.collection('users').doc(id).update({plan:newPlan});
+    await logActivity('admin_plan_change', {targetUid:id, plan:newPlan});
+    renderAspirantTable();
+  }catch(err){ alert(friendlyFirebaseError(err)); }
+}
+async function toggleUserSuspension(id){
+  const doc = await db.collection('users').doc(id).get();
+  if(!doc.exists) return;
+  const suspended = !doc.data().suspended;
+  if(!confirm(`${suspended ? 'Suspend' : 'Unsuspend'} this aspirant?`)) return;
+  try{
+    if(id === currentUser.uid){ alert('You cannot suspend your own admin account.'); return; }
+    await db.collection('users').doc(id).update({suspended});
+    await logActivity('admin_user_status', {targetUid:id, suspended});
+    renderAspirantTable();
+  }catch(err){ alert(friendlyFirebaseError(err)); }
+}
+async function viewUserActivity(id){
+  document.getElementById('activityFilter').value='all';
+  adminTab='activities';
+  document.querySelectorAll('#view-admin .tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab==='activities'));
+  ['adminAspirants','adminQuestions','adminResources','adminPayments','adminActivities'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!=='adminActivities'));
+  await renderActivities(id);
+}
+
+async function forceSignOutUser(id){
+  alert('Force sign-out requires Firebase Cloud Functions/Admin SDK, which is not enabled on the free Spark plan. You can suspend the aspirant instead; suspended accounts are blocked at their next login.');
+}
+async function deleteUser(id){
+  if(id === currentUser.uid){ alert('You cannot remove your own admin profile.'); return; }
+  if(!confirm("Remove this aspirant's profile and Firestore access record? On the free Spark plan, Firebase Authentication credentials cannot be deleted from this dashboard.")) return;
+  try{
+    await db.collection('users').doc(id).delete();
+    await logActivity('admin_user_delete', {targetUid:id});
+    renderAspirantTable();
+  }catch(err){ alert(friendlyFirebaseError(err)); }
+}
+
+
+
+const FREE_GK_QUESTIONS = [{'question': 'Which river is known as the lifeline of Assam?', 'options': ['Brahmaputra', 'Ganga', 'Godavari', 'Narmada'], 'correct': 0}, {'question': 'Kaziranga National Park is especially famous for which animal?', 'options': ['One-horned rhinoceros', 'Asiatic lion', 'Snow leopard', 'Blackbuck'], 'correct': 0}, {'question': 'Which is the largest river island in India, located in Assam?', 'options': ['Majuli', 'Diu', 'Sagar', 'Elephanta'], 'correct': 0}, {'question': 'Which classical dance form originated in Assam?', 'options': ['Sattriya', 'Kathakali', 'Odissi', 'Kuchipudi'], 'correct': 0}, {'question': 'The Ahom kingdom was founded in Assam by whom?', 'options': ['Sukaphaa', 'Lachit Borphukan', 'Rudra Singha', 'Gopinath Bordoloi'], 'correct': 0}, {'question': 'Lachit Borphukan is best known for his role in which battle?', 'options': ['Battle of Saraighat', 'Battle of Plassey', 'Battle of Buxar', 'Battle of Panipat'], 'correct': 0}, {'question': 'Which festival is widely celebrated in Assam as the Assamese New Year festival?', 'options': ['Bohag Bihu', 'Onam', 'Pongal', 'Baisakhi'], 'correct': 0}, {'question': 'Sivasagar is historically associated with which dynasty?', 'options': ['Ahom dynasty', 'Maurya dynasty', 'Gupta dynasty', 'Chola dynasty'], 'correct': 0}, {'question': 'Which national park of Assam is famous for its population of golden langurs nearby in the region?', 'options': ['Manas National Park', 'Gir National Park', 'Ranthambore National Park', 'Kanha National Park'], 'correct': 0}, {'question': 'Which is the capital of Assam?', 'options': ['Dispur', 'Shillong', 'Itanagar', 'Agartala'], 'correct': 0}, {'question': 'The Indian Constitution came into effect on which date?', 'options': ['26 January 1950', '15 August 1947', '26 November 1949', '2 October 1950'], 'correct': 0}, {'question': 'Who was the first President of independent India?', 'options': ['Dr. Rajendra Prasad', 'Dr. S. Radhakrishnan', 'Jawaharlal Nehru', 'Sardar Vallabhbhai Patel'], 'correct': 0}, {'question': 'Fundamental Rights are contained in which Part of the Indian Constitution?', 'options': ['Part III', 'Part II', 'Part IV', 'Part V'], 'correct': 0}, {'question': 'Who appoints the Governor of an Indian state?', 'options': ['President of India', 'Prime Minister', 'Chief Justice of India', 'State Legislative Assembly'], 'correct': 0}, {'question': 'The Panchayati Raj system primarily relates to which level of governance?', 'options': ['Local self-government', 'Central government', 'Judiciary', 'Foreign affairs'], 'correct': 0}, {'question': 'Which body is the highest court of India?', 'options': ['Supreme Court', 'High Court', 'District Court', 'Lok Adalat'], 'correct': 0}, {'question': 'The Parliament of India consists of the President and which two Houses?', 'options': ['Lok Sabha and Rajya Sabha', 'Lok Sabha and Vidhan Sabha', 'Rajya Sabha and Vidhan Parishad', 'Vidhan Sabha and Vidhan Parishad'], 'correct': 0}, {'question': 'Who is popularly known as the Father of the Indian Constitution?', 'options': ['B. R. Ambedkar', 'Mahatma Gandhi', 'Jawaharlal Nehru', 'Rajendra Prasad'], 'correct': 0}, {'question': 'Which institution conducts elections to Parliament and state legislatures in India?', 'options': ['Election Commission of India', 'Finance Commission', 'UPSC', 'NITI Aayog'], 'correct': 0}, {'question': 'The Directive Principles of State Policy are included in which Part of the Constitution?', 'options': ['Part IV', 'Part III', 'Part I', 'Part VI'], 'correct': 0}, {'question': 'Who founded the Maurya Empire?', 'options': ['Chandragupta Maurya', 'Ashoka', 'Bindusara', 'Harshavardhana'], 'correct': 0}, {'question': 'The Battle of Plassey was fought in which year?', 'options': ['1757', '1764', '1857', '1748'], 'correct': 0}, {'question': "Who gave the slogan 'Do or Die' during the Quit India Movement?", 'options': ['Mahatma Gandhi', 'Subhas Chandra Bose', 'Bhagat Singh', 'Bal Gangadhar Tilak'], 'correct': 0}, {'question': 'The Non-Cooperation Movement was launched in which year?', 'options': ['1920', '1919', '1930', '1942'], 'correct': 0}, {'question': 'Who founded the Indian National Congress in 1885 with other leaders?', 'options': ['A. O. Hume', 'Dadabhai Naoroji', 'Surendranath Banerjee', 'Gopal Krishna Gokhale'], 'correct': 0}, {'question': 'Which movement began with the Dandi March in 1930?', 'options': ['Civil Disobedience Movement', 'Quit India Movement', 'Non-Cooperation Movement', 'Swadeshi Movement'], 'correct': 0}, {'question': 'Who was the last Viceroy of British India?', 'options': ['Lord Mountbatten', 'Lord Curzon', 'Lord Wellesley', 'Lord Dalhousie'], 'correct': 0}, {'question': 'The Indian National Congress was founded in which year?', 'options': ['1885', '1905', '1857', '1947'], 'correct': 0}, {'question': 'Which ancient university was located in present-day Bihar?', 'options': ['Nalanda', 'Takshashila', 'Vikramashila', 'Valabhi'], 'correct': 0}, {'question': 'The Harappan Civilization is also known as which civilization?', 'options': ['Indus Valley Civilization', 'Vedic Civilization', 'Mauryan Civilization', 'Gupta Civilization'], 'correct': 0}, {'question': 'Which is the largest state in India by area?', 'options': ['Rajasthan', 'Madhya Pradesh', 'Maharashtra', 'Uttar Pradesh'], 'correct': 0}, {'question': 'Which is the smallest state in India by area?', 'options': ['Goa', 'Sikkim', 'Tripura', 'Manipur'], 'correct': 0}, {'question': "Which mountain range forms India's northern boundary with the Tibetan region?", 'options': ['Himalayas', 'Aravalli', 'Western Ghats', 'Eastern Ghats'], 'correct': 0}, {'question': 'Which Indian state has the longest coastline?', 'options': ['Gujarat', 'Tamil Nadu', 'Andhra Pradesh', 'Maharashtra'], 'correct': 0}, {'question': 'The Tropic of Cancer passes through how many Indian states?', 'options': ['8', '6', '7', '9'], 'correct': 0}, {'question': 'Which is the highest peak in India?', 'options': ['Kangchenjunga', 'Nanda Devi', 'Anamudi', 'Kamet'], 'correct': 0}, {'question': 'Which soil is generally considered most suitable for cotton cultivation in India?', 'options': ['Black soil', 'Alluvial soil', 'Laterite soil', 'Red soil'], 'correct': 0}, {'question': 'The Sundarbans are primarily located in which type of ecosystem?', 'options': ['Mangrove forest', 'Desert', 'Alpine forest', 'Grassland'], 'correct': 0}, {'question': "Which Indian river is known as the 'Sorrow of Bihar'?", 'options': ['Kosi', 'Yamuna', 'Narmada', 'Tapi'], 'correct': 0}, {'question': 'Which is the largest freshwater lake in India by surface area?', 'options': ['Wular Lake', 'Dal Lake', 'Loktak Lake', 'Chilika Lake'], 'correct': 0}, {'question': "Which gas is most abundant in Earth's atmosphere?", 'options': ['Nitrogen', 'Oxygen', 'Carbon dioxide', 'Argon'], 'correct': 0}, {'question': 'Which organ in the human body pumps blood throughout the body?', 'options': ['Heart', 'Liver', 'Kidney', 'Lung'], 'correct': 0}, {'question': 'Vitamin C deficiency causes which disease?', 'options': ['Scurvy', 'Rickets', 'Beriberi', 'Night blindness'], 'correct': 0}, {'question': 'Which planet is known as the Red Planet?', 'options': ['Mars', 'Venus', 'Jupiter', 'Mercury'], 'correct': 0}, {'question': 'What is the SI unit of force?', 'options': ['Newton', 'Joule', 'Watt', 'Pascal'], 'correct': 0}, {'question': 'Which metal is liquid at room temperature?', 'options': ['Mercury', 'Iron', 'Aluminium', 'Copper'], 'correct': 0}, {'question': 'Photosynthesis mainly occurs in which cell organelle?', 'options': ['Chloroplast', 'Nucleus', 'Mitochondrion', 'Ribosome'], 'correct': 0}, {'question': 'Which instrument is used to measure atmospheric pressure?', 'options': ['Barometer', 'Hygrometer', 'Ammeter', 'Thermometer'], 'correct': 0}, {'question': "Who wrote the Indian national anthem 'Jana Gana Mana'?", 'options': ['Rabindranath Tagore', 'Bankim Chandra Chattopadhyay', 'Sarojini Naidu', 'Subhas Chandra Bose'], 'correct': 0}, {'question': 'Which is the currency of Japan?', 'options': ['Yen', 'Won', 'Yuan', 'Ringgit'], 'correct': 0}, {'question': 'The United Nations headquarters is located in which city?', 'options': ['New York', 'Geneva', 'Paris', 'London'], 'correct': 0}];
+
+const FREE_MATH_QUESTIONS = [{"question": "What is 25% of 240?", "options": ["50", "60", "70", "80"], "correct": 1}, {"question": "A shopkeeper buys an article for ₹800 and sells it for ₹920. What is the profit percentage?", "options": ["10%", "12%", "15%", "20%"], "correct": 2}, {"question": "The ratio of 3:5 is equivalent to which ratio?", "options": ["6:8", "9:15", "12:25", "15:18"], "correct": 1}, {"question": "Find the simple interest on ₹5,000 at 8% per annum for 2 years.", "options": ["₹600", "₹700", "₹800", "₹900"], "correct": 2}, {"question": "A number increased by 20% becomes 360. What is the original number?", "options": ["280", "300", "320", "340"], "correct": 1}, {"question": "What is the average of 18, 24, 30, 36 and 42?", "options": ["28", "30", "32", "34"], "correct": 1}, {"question": "If 12 workers complete a work in 15 days, how many days will 20 workers take, assuming equal efficiency?", "options": ["8", "9", "10", "12"], "correct": 1}, {"question": "A train travels 180 km in 3 hours. What is its average speed?", "options": ["50 km/h", "60 km/h", "70 km/h", "80 km/h"], "correct": 1}, {"question": "Convert 0.375 into a fraction in lowest terms.", "options": ["3/8", "5/8", "7/16", "3/5"], "correct": 0}, {"question": "What is 3/4 + 5/8?", "options": ["9/8", "11/8", "13/8", "15/8"], "correct": 1}, {"question": "What is 7/9 − 2/3?", "options": ["1/9", "2/9", "1/3", "4/9"], "correct": 0}, {"question": "What is the HCF of 36 and 48?", "options": ["6", "8", "12", "16"], "correct": 2}, {"question": "What is the LCM of 12 and 18?", "options": ["24", "30", "36", "48"], "correct": 2}, {"question": "If x + 7 = 19, what is x?", "options": ["10", "11", "12", "13"], "correct": 2}, {"question": "If 3x = 27, what is x?", "options": ["6", "7", "8", "9"], "correct": 3}, {"question": "Simplify: 15 + 6 × 4 − 8.", "options": ["31", "35", "39", "43"], "correct": 0}, {"question": "What is the square root of 144?", "options": ["10", "11", "12", "14"], "correct": 2}, {"question": "What is the cube of 5?", "options": ["25", "75", "100", "125"], "correct": 3}, {"question": "A rectangle has length 12 cm and breadth 7 cm. What is its area?", "options": ["76 cm²", "84 cm²", "96 cm²", "108 cm²"], "correct": 1}, {"question": "A square has side 9 cm. What is its perimeter?", "options": ["18 cm", "27 cm", "36 cm", "81 cm"], "correct": 2}, {"question": "What is the area of a triangle with base 10 cm and height 8 cm?", "options": ["30 cm²", "40 cm²", "50 cm²", "80 cm²"], "correct": 1}, {"question": "Using π = 22/7, what is the circumference of a circle of radius 7 cm?", "options": ["22 cm", "44 cm", "88 cm", "154 cm"], "correct": 1}, {"question": "A man walks 5 km north and then 12 km east. What is the shortest distance from his starting point?", "options": ["13 km", "15 km", "17 km", "19 km"], "correct": 0}, {"question": "If 5 pens cost ₹75, what is the cost of 8 pens at the same rate?", "options": ["₹100", "₹110", "₹120", "₹125"], "correct": 2}, {"question": "A sum of ₹1,200 is divided in the ratio 2:3. What is the larger share?", "options": ["₹480", "₹600", "₹720", "₹800"], "correct": 2}, {"question": "A discount of 10% is given on an article marked ₹1,500. What is the selling price?", "options": ["₹1,300", "₹1,350", "₹1,400", "₹1,450"], "correct": 1}, {"question": "A person spends 75% of an income of ₹20,000. How much does the person save?", "options": ["₹4,000", "₹5,000", "₹6,000", "₹7,000"], "correct": 1}, {"question": "If 40% of a number is 96, what is the number?", "options": ["200", "220", "240", "260"], "correct": 2}, {"question": "A car covers 150 km at 50 km/h. How long does the journey take?", "options": ["2 hours", "3 hours", "4 hours", "5 hours"], "correct": 1}, {"question": "If a:b = 4:7 and b:c = 14:15, what is a:c?", "options": ["4:15", "8:15", "8:21", "14:15"], "correct": 1}, {"question": "The perimeter of a rectangle is 50 cm and its length is 15 cm. What is its breadth?", "options": ["8 cm", "10 cm", "12 cm", "15 cm"], "correct": 0}, {"question": "What is the value of 2⁵?", "options": ["16", "24", "32", "64"], "correct": 2}, {"question": "If 2x + 5 = 17, what is x?", "options": ["5", "6", "7", "8"], "correct": 1}, {"question": "The ages of A and B are in the ratio 3:5. If their total age is 32 years, what is B’s age?", "options": ["12 years", "16 years", "20 years", "24 years"], "correct": 2}, {"question": "A sum becomes ₹1,200 from ₹1,000 in 2 years at simple interest. What is the annual rate?", "options": ["5%", "10%", "15%", "20%"], "correct": 1}, {"question": "A quantity is reduced from 500 to 425. What is the percentage decrease?", "options": ["10%", "12%", "15%", "17%"], "correct": 2}, {"question": "If 8 machines produce 400 units in a day, how many units will 12 similar machines produce in a day?", "options": ["500", "550", "600", "650"], "correct": 2}, {"question": "What is the median of 7, 3, 9, 5 and 11?", "options": ["5", "7", "9", "11"], "correct": 1}, {"question": "What is the mode of 4, 7, 4, 9, 6, 4 and 8?", "options": ["4", "6", "7", "9"], "correct": 0}, {"question": "A bag contains 3 red and 2 blue balls. What is the probability of drawing a red ball in one draw?", "options": ["2/5", "3/5", "1/2", "3/2"], "correct": 1}, {"question": "What is 15% of 600?", "options": ["60", "75", "90", "105"], "correct": 2}, {"question": "A number is divisible by both 6 and 8. What is the least possible positive number?", "options": ["12", "18", "24", "48"], "correct": 2}, {"question": "If 1 metre = 100 centimetres, how many centimetres are there in 3.5 metres?", "options": ["35 cm", "300 cm", "350 cm", "3,500 cm"], "correct": 2}, {"question": "A shopkeeper marks an item at ₹2,000 and gives a 15% discount. What is the discount amount?", "options": ["₹250", "₹300", "₹350", "₹400"], "correct": 1}, {"question": "What is the value of 2.5 × 4?", "options": ["8", "9", "10", "12"], "correct": 2}, {"question": "If 4 notebooks cost ₹180, what is the cost of 7 notebooks at the same rate?", "options": ["₹270", "₹300", "₹315", "₹330"], "correct": 2}, {"question": "The sum of the first 10 natural numbers is:", "options": ["45", "50", "55", "60"], "correct": 2}, {"question": "What is the next number in the series 2, 5, 8, 11, 14, ?", "options": ["16", "17", "18", "19"], "correct": 1}, {"question": "A clock shows 3:00. What is the angle between the hour and minute hands?", "options": ["60°", "90°", "120°", "180°"], "correct": 1}, {"question": "If 5x − 10 = 20, what is x?", "options": ["4", "5", "6", "7"], "correct": 2}];
+
+const FREE_REASONING_QUESTIONS = [{"question":"Find the next number: 2, 4, 8, 16, ?","options":["24","30","32","34"],"correct":2},{"question":"Find the next number: 5, 10, 20, 40, ?","options":["60","70","80","90"],"correct":2},{"question":"Find the odd one out.","options":["Triangle","Square","Circle","Rectangle"],"correct":2},{"question":"If CAT is coded as DBU, how is DOG coded?","options":["EPH","EOG","FPH","DOH"],"correct":0},{"question":"If A=1, B=2, C=3, what is the value of BAD?","options":["5","7","8","9"],"correct":1},{"question":"Which number replaces the question mark: 3, 6, 11, 18, 27, ?","options":["36","38","40","42"],"correct":1},{"question":"A is taller than B, and B is taller than C. Who is shortest?","options":["A","B","C","Cannot be determined"],"correct":2},{"question":"Ravi walks 5 km north and then 3 km east. In which direction is he from his starting point?","options":["North-west","North-east","South-east","South-west"],"correct":1},{"question":"If you face east and turn left, which direction do you face?","options":["North","South","West","North-east"],"correct":0},{"question":"Pointing to a woman, Arun says, She is the daughter of my mother’s only son. Who is the woman to Arun?","options":["Sister","Daughter","Mother","Aunt"],"correct":1},{"question":"A clock shows 6:00. What is the angle between the hands?","options":["90°","120°","180°","360°"],"correct":2},{"question":"Which letter comes next: A, C, E, G, ?","options":["H","I","J","K"],"correct":1},{"question":"Which letter comes next: Z, X, V, T, ?","options":["R","S","Q","P"],"correct":0},{"question":"Find the missing number: 7, 14, 28, 56, ?","options":["84","96","112","120"],"correct":2},{"question":"If 8 workers complete a job in 12 days, how many worker-days are required?","options":["20","48","96","120"],"correct":2},{"question":"In a row, Priya is 7th from the left and 9th from the right. How many people are in the row?","options":["15","16","17","18"],"correct":1},{"question":"If all roses are flowers and all flowers are plants, which conclusion follows?","options":["All plants are roses","All roses are plants","No roses are plants","Some plants are not flowers"],"correct":1},{"question":"Choose the pair that has the same relationship as Bird : Nest.","options":["Dog : Kennel","Cow : Grass","Fish : Water","Lion : Forest"],"correct":0},{"question":"Find the next pair: AB, CD, EF, GH, ?","options":["HI","IJ","JK","KL"],"correct":1},{"question":"If MONDAY is coded as 1234567, what digit represents D?","options":["3","4","5","6"],"correct":3},{"question":"A man walks 4 km south, then 4 km west. In which direction is he from the starting point?","options":["North-east","North-west","South-east","South-west"],"correct":3},{"question":"Five persons P, Q, R, S and T stand in a line. P is before Q, Q is before R, and S is after R. If T is before P, who is first?","options":["P","Q","S","T"],"correct":3},{"question":"Which number is different from the others?","options":["9","16","25","30"],"correct":3},{"question":"If BOOK is coded as CPPL, how is PEN coded?","options":["QFO","QEN","PFN","QFM"],"correct":0},{"question":"Complete the analogy: Hand : Glove :: Foot : ?","options":["Sock","Cap","Belt","Shirt"],"correct":0},{"question":"A is the brother of B. B is the sister of C. What is A to C?","options":["Brother","Sister","Father","Uncle"],"correct":0},{"question":"Find the next number: 1, 4, 9, 16, ?","options":["20","24","25","36"],"correct":2},{"question":"Find the next number: 81, 27, 9, 3, ?","options":["0","1","2","6"],"correct":1},{"question":"If SOUTH is written as HTUOS, how is EAST written?","options":["TSAE","ETAS","SAET","TASE"],"correct":0},{"question":"Which word cannot be formed from the letters of REASONING?","options":["SINGER","ANGER","REASON","GRAIN"],"correct":3},{"question":"If today is Monday, what day will it be after 10 days?","options":["Wednesday","Thursday","Friday","Saturday"],"correct":1},{"question":"A person faces north, turns right, then right again. Which direction is he facing?","options":["North","South","East","West"],"correct":1},{"question":"Find the missing number: 2, 6, 12, 20, 30, ?","options":["36","40","42","44"],"correct":2},{"question":"Which number should replace ?: 100, 90, 72, 48, ?","options":["24","30","32","36"],"correct":0},{"question":"If 3 + 4 = 25 and 5 + 6 = 61 under the same rule a²+b², what is 7 + 2?","options":["45","49","53","55"],"correct":2},{"question":"A father is 30 years older than his son. If the son is 12, what is the father’s age?","options":["40","42","44","45"],"correct":1},{"question":"In a class, Anu ranks 12th from the top and 18th from the bottom. How many students are there?","options":["29","30","31","32"],"correct":1},{"question":"Which is the mirror image order of ABC when viewed in a vertical mirror?","options":["ABC","CBA","BAC","ACB"],"correct":1},{"question":"Complete: Monday, Wednesday, Friday, ?","options":["Saturday","Sunday","Monday","Tuesday"],"correct":1},{"question":"If 2 is related to 8 and 3 is related to 27, then 4 is related to?","options":["16","32","64","81"],"correct":2},{"question":"Which one is a valid conclusion: Some books are novels; all novels are literature.","options":["All books are literature","Some books are literature","No books are literature","All literature are books"],"correct":1},{"question":"Find the next number: 10, 13, 17, 22, 28, ?","options":["34","35","36","37"],"correct":1},{"question":"If PENCIL is coded as QFODJM, how is PAPER coded?","options":["QBQFS","QBOFS","QBQER","PZQFS"],"correct":0},{"question":"A person is 10th from the left and 15th from the right in a row. How many people are there?","options":["24","25","26","27"],"correct":1},{"question":"Which shape has no sides?","options":["Triangle","Square","Circle","Pentagon"],"correct":2},{"question":"If all cats are animals and some animals are black, which statement must be true?","options":["All cats are black","Some cats are black","All black things are cats","All cats are animals"],"correct":3},{"question":"Find the missing term: AZ, BY, CX, DW, ?","options":["EV","FU","EW","EX"],"correct":0},{"question":"A, B, C, D and E sit in a row. A is left of B, C is right of B, D is left of A, and E is right of C. Who is in the middle?","options":["A","B","C","D"],"correct":1},{"question":"If 15% of a number is 30, what is the number?","options":["150","180","200","220"],"correct":2},{"question":"Find the next number: 4, 7, 13, 25, ?","options":["37","45","49","51"],"correct":2}];
+
+async function seedFreeReasoningQuestions(){
+  const msg = document.getElementById('qMsg');
+  try{
+    const snap = await db.collection('questions').where('tier','==','free').where('category','==','Mental Ability & Logical Reasoning').get();
+    const existing = snap.docs.map(d=>d.data().question);
+    const remaining = FREE_REASONING_QUESTIONS.filter(q => !existing.includes(q.question)).slice(0, Math.max(0, 50 - snap.size));
+    if(remaining.length===0){ msg.innerHTML = '<div class="form-msg ok">Mental Ability & Logical Reasoning already has 50 free questions.</div>'; renderQuestionList(); return; }
+    const batch = db.batch();
+    remaining.forEach(q=>{ const ref=db.collection('questions').doc(); batch.set(ref,{category:'Mental Ability & Logical Reasoning',tier:'free',question:q.question,options:q.options,correct:q.correct,createdAt:firebase.firestore.FieldValue.serverTimestamp(),source:'ADRE Success Free Mental Ability & Logical Reasoning Set 1'}); });
+    await batch.commit();
+    await logActivity('admin_seed_reasoning_free',{added:remaining.length});
+    msg.innerHTML = `<div class="form-msg ok">Added ${remaining.length} Free Mental Ability & Logical Reasoning questions. Total: ${snap.size + remaining.length}/50.</div>`;
+    renderQuestionList();
+  }catch(err){ msg.innerHTML = `<div class="form-msg err">${err.message}</div>`; }
+}
+
+async function seedFreeMathQuestions(){
+  const msg = document.getElementById('qMsg');
+  try{
+    const snap = await db.collection('questions').where('tier','==','free').where('category','==','General Mathematics').get();
+    const existing = snap.docs.map(d=>d.data().question);
+    const remaining = FREE_MATH_QUESTIONS.filter(q => !existing.includes(q.question)).slice(0, Math.max(0, 50 - snap.size));
+    if(remaining.length===0){
+      msg.innerHTML = '<div class="form-msg ok">General Mathematics already has 50 free questions.</div>';
+      renderQuestionList();
+      return;
+    }
+    const batch = db.batch();
+    remaining.forEach(q=>{
+      const ref = db.collection('questions').doc();
+      batch.set(ref, {category:'General Mathematics', tier:'free', question:q.question, options:q.options, correct:q.correct, createdAt:firebase.firestore.FieldValue.serverTimestamp(), source:'ADRE Success Free General Mathematics Set 1'});
+    });
+    await batch.commit();
+    await logActivity('admin_seed_math_free', {added:remaining.length});
+    msg.innerHTML = `<div class="form-msg ok">Added ${remaining.length} Free General Mathematics questions. Total: ${snap.size + remaining.length}/50.</div>`;
+    renderQuestionList();
+  }catch(err){
+    msg.innerHTML = `<div class="form-msg err">${err.message}</div>`;
+  }
+}
+
+
+
+const FREE_ENGLISH_QUESTIONS = [{"question": "Choose the correct synonym of “rapid”.", "options": ["Slow", "Swift", "Weak", "Late"], "correct": 1}, {"question": "Choose the correct antonym of “ancient”.", "options": ["Modern", "Old", "Historic", "Former"], "correct": 0}, {"question": "Choose the correctly spelt word.", "options": ["Accomodation", "Acommodation", "Accommodation", "Accommadation"], "correct": 2}, {"question": "Choose the correctly spelt word.", "options": ["Separate", "Seperate", "Seperete", "Sepparate"], "correct": 0}, {"question": "Fill in the blank: She _____ to school every day.", "options": ["go", "goes", "going", "gone"], "correct": 1}, {"question": "Fill in the blank: They _____ playing football now.", "options": ["is", "was", "are", "be"], "correct": 2}, {"question": "Choose the correct article: He is _____ honest man.", "options": ["a", "an", "the", "no article"], "correct": 1}, {"question": "Choose the correct preposition: The book is _____ the table.", "options": ["in", "on", "at", "by"], "correct": 1}, {"question": "Choose the correct preposition: She has been living here _____ 2018.", "options": ["for", "since", "from", "by"], "correct": 1}, {"question": "Choose the correct form: I _____ my homework yesterday.", "options": ["complete", "completed", "completing", "have complete"], "correct": 1}, {"question": "Choose the correct tense: By next month, she _____ the course.", "options": ["completes", "completed", "will have completed", "has completed"], "correct": 2}, {"question": "Choose the correct passive voice: The teacher praised the student.", "options": ["The student praised the teacher.", "The student was praised by the teacher.", "The teacher was praised by the student.", "The student is praising the teacher."], "correct": 1}, {"question": "Choose the correct indirect speech: He said, “I am tired.”", "options": ["He said that I am tired.", "He said that he was tired.", "He says that he was tired.", "He said that he is tired yesterday."], "correct": 1}, {"question": "Choose the correct question tag: You are coming, _____?", "options": ["are you", "aren’t you", "don’t you", "won’t you"], "correct": 1}, {"question": "Choose the correct plural of “child”.", "options": ["childs", "childes", "children", "childrens"], "correct": 2}, {"question": "Choose the correct plural of “mouse”.", "options": ["mouses", "mice", "mousees", "meese"], "correct": 1}, {"question": "Choose the noun in the sentence: “Honesty is the best policy.”", "options": ["best", "is", "Honesty", "policy is"], "correct": 2}, {"question": "Choose the adjective in the sentence: “She wore a beautiful dress.”", "options": ["She", "wore", "beautiful", "dress"], "correct": 2}, {"question": "Choose the adverb in the sentence: “He spoke softly.”", "options": ["He", "spoke", "softly", "none"], "correct": 2}, {"question": "Choose the pronoun in the sentence: “They went to the market.”", "options": ["went", "market", "They", "to"], "correct": 2}, {"question": "Choose the correct comparative form of “good”.", "options": ["gooder", "more good", "better", "best"], "correct": 2}, {"question": "Choose the correct superlative form of “little” when referring to quantity.", "options": ["less", "least", "littlest", "more little"], "correct": 1}, {"question": "Choose the correct conjunction: Work hard _____ you will succeed.", "options": ["and", "but", "or", "because"], "correct": 0}, {"question": "Choose the correct conjunction: He stayed home _____ he was ill.", "options": ["although", "because", "unless", "while"], "correct": 1}, {"question": "Choose the correct one-word substitution for “one who cannot read or write”.", "options": ["Literate", "Scholar", "Illiterate", "Author"], "correct": 2}, {"question": "Choose the correct one-word substitution for “a place where books are kept”.", "options": ["Laboratory", "Library", "Bakery", "Gallery"], "correct": 1}, {"question": "Choose the meaning of the idiom “once in a blue moon”.", "options": ["Very frequently", "Very rarely", "At night", "Immediately"], "correct": 1}, {"question": "Choose the meaning of the idiom “spill the beans”.", "options": ["Cook food", "Reveal a secret", "Waste money", "Make a plan"], "correct": 1}, {"question": "Choose the word closest in meaning to “brave”.", "options": ["Cowardly", "Courageous", "Careless", "Quiet"], "correct": 1}, {"question": "Choose the word closest in meaning to “difficult”.", "options": ["Easy", "Simple", "Hard", "Plain"], "correct": 2}, {"question": "Choose the correct sentence.", "options": ["He do his work regularly.", "He does his work regularly.", "He doing his work regularly.", "He done his work regularly."], "correct": 1}, {"question": "Choose the correct sentence.", "options": ["Neither of the boys are ready.", "Neither of the boys is ready.", "Neither boys is ready.", "Neither of boys are ready."], "correct": 1}, {"question": "Choose the correct sentence.", "options": ["She is senior than me.", "She is senior to me.", "She is senior from me.", "She is more senior to me than."], "correct": 1}, {"question": "Choose the correct sentence.", "options": ["I prefer tea than coffee.", "I prefer tea to coffee.", "I prefer tea over than coffee.", "I prefer tea from coffee."], "correct": 1}, {"question": "Choose the correct spelling.", "options": ["Government", "Goverment", "Govarnment", "Governmant"], "correct": 0}, {"question": "Choose the correct spelling.", "options": ["Necessary", "Necesary", "Neccessary", "Necessery"], "correct": 0}, {"question": "Fill in the blank: There are _____ apples in the basket.", "options": ["much", "many", "little", "less"], "correct": 1}, {"question": "Fill in the blank: There is _____ water in the bottle.", "options": ["many", "few", "a few", "some"], "correct": 3}, {"question": "Choose the correct modal: You _____ obey traffic rules.", "options": ["may", "must", "might", "could"], "correct": 1}, {"question": "Choose the correct modal: _____ I borrow your pen?", "options": ["Must", "May", "Should", "Need"], "correct": 1}, {"question": "Choose the correct form: If I were you, I _____ accept the offer.", "options": ["will", "would", "shall", "can"], "correct": 1}, {"question": "Choose the correct conditional form: If it rains, we _____ at home.", "options": ["stay", "will stay", "stayed", "would stayed"], "correct": 1}, {"question": "Choose the correct preposition: He is good _____ mathematics.", "options": ["in", "at", "on", "for"], "correct": 1}, {"question": "Choose the correct preposition: She is afraid _____ dogs.", "options": ["from", "with", "of", "by"], "correct": 2}, {"question": "Choose the correct word: The medicine had no _____ on the patient.", "options": ["affect", "effect", "effects", "effective"], "correct": 1}, {"question": "Choose the correct word: The principal _____ the students to remain silent.", "options": ["advised", "advice", "advise", "advising"], "correct": 0}, {"question": "Choose the correct meaning of “optimistic”.", "options": ["Expecting good results", "Always angry", "Unable to decide", "Afraid of change"], "correct": 0}, {"question": "Choose the correct meaning of “obsolete”.", "options": ["Very modern", "No longer in use", "Extremely expensive", "Easy to repair"], "correct": 1}, {"question": "Choose the correctly punctuated sentence.", "options": ["Ravi said I am ready.", "Ravi said, “I am ready.”", "Ravi, said “I am ready”.", "Ravi said “I am ready”."], "correct": 1}, {"question": "Choose the correct word order.", "options": ["Always she speaks politely.", "She always speaks politely.", "She speaks always politely.", "Politely always she speaks."], "correct": 1}];
+
+async function seedFreeEnglishQuestions(){
+  const msg = document.getElementById('qMsg');
+  try{
+    const snap = await db.collection('questions').where('tier','==','free').where('category','==','General English').get();
+    const existing = snap.docs.map(d=>d.data().question);
+    const remaining = FREE_ENGLISH_QUESTIONS.filter(q => !existing.includes(q.question)).slice(0, Math.max(0, 50 - snap.size));
+    if(remaining.length===0){
+      msg.innerHTML = '<div class="form-msg ok">General English already has 50 free questions.</div>';
+      renderQuestionList();
+      return;
+    }
+    const batch = db.batch();
+    remaining.forEach(q=>{
+      const ref = db.collection('questions').doc();
+      batch.set(ref, {category:'General English', tier:'free', question:q.question, options:q.options, correct:q.correct, createdAt:firebase.firestore.FieldValue.serverTimestamp(), source:'ADRE Success Free General English Set 1'});
+    });
+    await batch.commit();
+    await logActivity('admin_seed_english_free', {added:remaining.length});
+    msg.innerHTML = `<div class="form-msg ok">Added ${remaining.length} Free General English questions. Total: ${snap.size + remaining.length}/50.</div>`;
+    renderQuestionList();
+  }catch(err){
+    msg.innerHTML = `<div class="form-msg err">${err.message}</div>`;
+  }
+}
+
+const FREE_COMPUTER_QUESTIONS = [{"question":"What does CPU stand for?","options":["Central Processing Unit","Central Program Utility","Computer Processing User","Control Processing Unit"],"correct":0},{"question":"Which part of a computer performs most of the processing?","options":["CPU","Monitor","Keyboard","Printer"],"correct":0},{"question":"Which memory is temporary and loses its contents when power is turned off?","options":["RAM","ROM","SSD","DVD"],"correct":0},{"question":"Which memory is generally used to store firmware and is non-volatile?","options":["ROM","RAM","Cache","Register"],"correct":0},{"question":"Which device is mainly used to enter text into a computer?","options":["Keyboard","Monitor","Speaker","Projector"],"correct":0},{"question":"Which device is used to move the pointer on a computer screen?","options":["Mouse","Scanner","Printer","Speaker"],"correct":0},{"question":"Which device converts a paper document into a digital image?","options":["Scanner","Printer","Plotter","Speaker"],"correct":0},{"question":"Which device produces a hard copy of a document?","options":["Printer","Scanner","Monitor","Webcam"],"correct":0},{"question":"Which of the following is an operating system?","options":["Windows","Google","Intel","Adobe"],"correct":0},{"question":"Which operating system is open-source and widely used?","options":["Linux","Windows","iOS","MS Word"],"correct":0},{"question":"What is the full form of URL?","options":["Uniform Resource Locator","Universal Record Link","Unified Resource Link","Uniform Reference Line"],"correct":0},{"question":"What is the full form of WWW?","options":["World Wide Web","World Web Window","Wide World Web","Web World Wide"],"correct":0},{"question":"Which protocol is commonly used to access websites securely?","options":["HTTPS","FTP","SMTP","POP3"],"correct":0},{"question":"Which protocol is primarily used for sending email?","options":["SMTP","HTTP","FTP","IMAP"],"correct":0},{"question":"Which protocol is commonly used to receive and synchronize email messages?","options":["IMAP","SMTP","HTTP","ARP"],"correct":0},{"question":"What is a web browser used for?","options":["Accessing websites","Editing hardware","Formatting a hard disk","Scanning documents"],"correct":0},{"question":"Which of these is a web browser?","options":["Mozilla Firefox","Microsoft Excel","Adobe Photoshop","VLC Media Player"],"correct":0},{"question":"Which of these is a search engine?","options":["Google","Windows","Linux","Bluetooth"],"correct":0},{"question":"What is an IP address used for?","options":["Identifying a device on a network","Printing documents","Editing images","Charging a battery"],"correct":0},{"question":"Which device commonly connects multiple devices within a local network?","options":["Network switch","Keyboard","Monitor","Scanner"],"correct":0},{"question":"What does LAN stand for?","options":["Local Area Network","Large Access Network","Linked Area Node","Local Access Node"],"correct":0},{"question":"What does Wi-Fi primarily provide?","options":["Wireless network connectivity","Computer cooling","File compression","Power backup"],"correct":0},{"question":"Which technology is designed for short-range wireless communication between nearby devices?","options":["Bluetooth","Ethernet","HDMI","VGA"],"correct":0},{"question":"What is a computer virus?","options":["A malicious program","A hardware component","A type of monitor","A backup device"],"correct":0},{"question":"Which software is designed to detect and remove many types of malware?","options":["Antivirus software","Spreadsheet software","Presentation software","Media player"],"correct":0},{"question":"What is phishing?","options":["A fraudulent attempt to obtain sensitive information","A method of printing","A file compression technique","A type of monitor"],"correct":0},{"question":"Which password is strongest?","options":["T9#qL7!mP2","password123","12345678","qwerty"],"correct":0},{"question":"What is a firewall primarily used for?","options":["Controlling network traffic for security","Increasing screen brightness","Creating presentations","Cleaning the keyboard"],"correct":0},{"question":"What is cloud storage?","options":["Storing data on remote internet-connected servers","Storing files only in RAM","Printing files remotely","Saving data only on a keyboard"],"correct":0},{"question":"Which is an example of cloud storage service?","options":["Google Drive","Calculator","Notepad","Paint"],"correct":0},{"question":"What keyboard shortcut is commonly used to copy selected text or files in Windows?","options":["Ctrl+C","Ctrl+X","Ctrl+V","Ctrl+Z"],"correct":0},{"question":"What keyboard shortcut is commonly used to paste copied content?","options":["Ctrl+V","Ctrl+C","Ctrl+P","Ctrl+S"],"correct":0},{"question":"What keyboard shortcut is commonly used to save a file?","options":["Ctrl+S","Ctrl+A","Ctrl+F","Ctrl+N"],"correct":0},{"question":"What keyboard shortcut is commonly used to undo the last action?","options":["Ctrl+Z","Ctrl+Y","Ctrl+U","Ctrl+R"],"correct":0},{"question":"What does Ctrl+A usually do?","options":["Select all","Save all","Open all","Close all"],"correct":0},{"question":"Which file extension is commonly associated with a Microsoft Word document?","options":[".docx",".xlsx",".pptx",".mp3"],"correct":0},{"question":"Which file extension is commonly associated with a spreadsheet created in Microsoft Excel?","options":[".xlsx",".docx",".pptx",".jpg"],"correct":0},{"question":"Which file extension is commonly associated with a PowerPoint presentation?","options":[".pptx",".xlsx",".txt",".png"],"correct":0},{"question":"Which of the following is an image file format?","options":["JPEG","MP3","DOCX","EXE"],"correct":0},{"question":"Which of the following is an audio file format?","options":["MP3","JPEG","PDF","XLSX"],"correct":0},{"question":"Which software is mainly used for spreadsheets?","options":["Microsoft Excel","Microsoft Word","PowerPoint","Paint"],"correct":0},{"question":"Which software is mainly used to create presentations?","options":["Microsoft PowerPoint","Microsoft Excel","Notepad","Calculator"],"correct":0},{"question":"Which software is mainly used for word processing?","options":["Microsoft Word","Microsoft Excel","PowerPoint","Access"],"correct":0},{"question":"What is a backup?","options":["A copy of data kept for recovery","A computer virus","A screen setting","A type of keyboard"],"correct":0},{"question":"What is a PDF mainly designed to preserve?","options":["Document layout and formatting","Computer battery charge","Internet speed","CPU temperature"],"correct":0},{"question":"What does USB stand for?","options":["Universal Serial Bus","United System Board","Universal Storage Base","User Service Bus"],"correct":0},{"question":"Which port is commonly used to connect a computer to a wired Ethernet network?","options":["RJ-45","HDMI","VGA","3.5 mm audio jack"],"correct":0},{"question":"Which device provides backup electrical power to a computer for a short time?","options":["UPS","CPU","GPU","NIC"],"correct":0},{"question":"What does UPS stand for?","options":["Uninterruptible Power Supply","Universal Processing System","Unified Power Switch","User Protection Service"],"correct":0},{"question":"Which unit is commonly used to measure computer storage capacity?","options":["Gigabyte","Gigahertz","Volt","Pixel"],"correct":0}];
+
+async function seedFreeComputerQuestions(){
+  const msg = document.getElementById('qMsg');
+  try{
+    const snap = await db.collection('questions').where('tier','==','free').where('category','==','Basic Computer Knowledge').get();
+    const existing = snap.docs.map(d=>d.data().question);
+    const remaining = FREE_COMPUTER_QUESTIONS.filter(q => !existing.includes(q.question)).slice(0, Math.max(0, 50 - snap.size));
+    if(remaining.length===0){
+      msg.innerHTML = '<div class="form-msg ok">Basic Computer Knowledge already has 50 free questions.</div>';
+      renderQuestionList();
+      return;
+    }
+    const batch = db.batch();
+    remaining.forEach(q=>{
+      const ref = db.collection('questions').doc();
+      batch.set(ref, {category:'Basic Computer Knowledge', tier:'free', question:q.question, options:q.options, correct:q.correct, createdAt:firebase.firestore.FieldValue.serverTimestamp(), source:'ADRE Success Free Basic Computer Knowledge Set 1'});
+    });
+    await batch.commit();
+    await logActivity('admin_seed_computer_free', {added:remaining.length});
+    msg.innerHTML = `<div class="form-msg ok">Added ${remaining.length} Free Basic Computer Knowledge questions. Total: ${snap.size + remaining.length}/50.</div>`;
+    renderQuestionList();
+  }catch(err){
+    msg.innerHTML = `<div class="form-msg err">${err.message}</div>`;
+  }
+}
+
+async function seedFreeGKQuestions(){
+  const msg = document.getElementById('qMsg');
+  try{
+    const snap = await db.collection('questions').where('tier','==','free').where('category','==','General Knowledge').get();
+    const existing = snap.docs.map(d=>d.data().question);
+    const remaining = FREE_GK_QUESTIONS.filter(q => !existing.includes(q.question)).slice(0, Math.max(0, 50 - snap.size));
+    if(remaining.length===0){
+      msg.innerHTML = '<div class="form-msg ok">General Knowledge already has 50 free questions.</div>';
+      renderQuestionList();
+      return;
+    }
+    const batch = db.batch();
+    remaining.forEach(q=>{
+      const ref = db.collection('questions').doc();
+      batch.set(ref, {category:'General Knowledge', tier:'free', question:q.question, options:q.options, correct:q.correct, createdAt:firebase.firestore.FieldValue.serverTimestamp(), source:'ADRE Success Free GK Set 1'});
+    });
+    await batch.commit();
+    await logActivity('admin_seed_gk_free', {added:remaining.length});
+    msg.innerHTML = `<div class="form-msg ok">Added ${remaining.length} Free General Knowledge questions. Total: ${snap.size + remaining.length}/50.</div>`;
+    renderQuestionList();
+  }catch(err){
+    msg.innerHTML = `<div class="form-msg err">${err.message}</div>`;
+  }
+}
+
+async function addQuestion(){
+  const category = document.getElementById('qCategory').value;
+  const tier = document.getElementById('qTier').value;
+  const text = document.getElementById('qText').value.trim();
+  const optionInputs = document.querySelectorAll('.qOptInput');
+  const options = Array.from(optionInputs).map(i=>i.value.trim());
+  const correct = parseInt(document.querySelector('input[name="qCorrect"]:checked').value);
+  const msg = document.getElementById('qMsg');
+
+  if(!text || options.some(o=>!o)){ msg.innerHTML = '<div class="form-msg err">Fill in the question and all four options.</div>'; return; }
+
+  try{
+    const existing = await db.collection('questions')
+      .where('tier','==',tier)
+      .where('category','==',category)
+      .get();
+    const limit = tier === 'free' ? 50 : 365;
+    if(existing.size >= limit){
+      msg.innerHTML = `<div class="form-msg err">The ${tier} question limit is ${limit} for ${category}. Delete an existing ${tier} question in this subject before adding another.</div>`;
+      return;
+    }
+    await db.collection('questions').add({
+      category, tier, question: text, options, correct,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await logActivity('admin_question_add', {category,tier});
+    msg.innerHTML = '<div class="form-msg ok">Question added.</div>';
+    document.getElementById('qText').value = '';
+    optionInputs.forEach(i=>i.value='');
+    renderQuestionList();
+  }catch(err){
+    msg.innerHTML = `<div class="form-msg err">${err.message}</div>`;
+  }
+}
+async function renderQuestionList(){
+  const holder = document.getElementById('questionList');
+  holder.innerHTML = '<p>Loading…</p>';
+  const snap = await db.collection('questions').get();
+  const questions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const limits = document.getElementById('questionLimits');
+  const categories = [
+    'General Knowledge',
+    'General English',
+    'General Mathematics',
+    'Basic Computer Knowledge',
+    'Mental Ability & Logical Reasoning'
+  ];
+  if(limits){
+    limits.innerHTML = categories.map(cat => {
+      const freeCount = questions.filter(q => q.tier === 'free' && q.category === cat).length;
+      const paidCount = questions.filter(q => q.tier === 'paid' && q.category === cat).length;
+      return `${cat}: Free ${freeCount}/50 · Paid ${paidCount}/365`;
+    }).join('<br>');
+  }
+  if(questions.length===0){ holder.innerHTML = '<p>No questions yet.</p>'; return; }
+  holder.innerHTML = questions.map(q=>`
+    <div class="qcard">
+      <p class="qtext">${q.question} <span class="badge ${q.tier}">${q.tier}</span> · <span class="rmeta">${q.category}</span></p>
+      <p class="rmeta">Correct: ${q.options[q.correct]}</p>
+      <button class="btn btn-danger btn-sm" style="margin-top:8px;" onclick="deleteQuestion('${q.id}')">Delete</button>
+    </div>`).join('');
+}
+async function deleteQuestion(id){
+  await db.collection('questions').doc(id).delete();
+  await logActivity('admin_question_delete', {questionId:id});
+  renderQuestionList();
+}
+
+async function addResource(){
+  const type = document.getElementById('rType').value;
+  const category = document.getElementById('rCategory').value.trim();
+  const title = document.getElementById('rTitle').value.trim();
+  const link = document.getElementById('rLink').value.trim();
+  const msg = document.getElementById('rMsg');
+  if(!title || !link){ msg.innerHTML = '<div class="form-msg err">Add a title and a link.</div>'; return; }
+  try{
+    await db.collection('resources').add({
+      type, category, title, link,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await logActivity('admin_resource_add', {type,category,title});
+    msg.innerHTML = '<div class="form-msg ok">Added.</div>';
+    document.getElementById('rTitle').value=''; document.getElementById('rLink').value=''; document.getElementById('rCategory').value='';
+    renderResourceListAdmin();
+  }catch(err){
+    msg.innerHTML = `<div class="form-msg err">${err.message}</div>`;
+  }
+}
+async function renderResourceListAdmin(){
+  const holder = document.getElementById('resourceList');
+  holder.innerHTML = '<p>Loading…</p>';
+  const snap = await db.collection('resources').get();
+  const resources = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if(resources.length===0){ holder.innerHTML='<p>Nothing added yet.</p>'; return; }
+  holder.innerHTML = `<div class="resource-list">` + resources.map(r=>`
+    <div class="resource-item">
+      <div><div class="rtitle">${r.title}</div><div class="rmeta">${r.type==='paper'?'Model paper':'PDF notes'} · ${r.category||''}</div></div>
+      <button class="btn btn-danger btn-sm" onclick="deleteResource('${r.id}')">Delete</button>
+    </div>`).join('') + `</div>`;
+}
+async function deleteResource(id){
+  await db.collection('resources').doc(id).delete();
+  await logActivity('admin_resource_delete', {resourceId:id});
+  renderResourceListAdmin();
+}
+
+async function renderPaymentRequests(){
+  const holder = document.getElementById('paymentRequestsList');
+  holder.innerHTML = '<p>Loading…</p>';
+
+  try{
+    const snap = await db.collection('paymentRequests').orderBy('createdAt','desc').get();
+    const requests = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+
+    if(requests.length===0){
+      holder.innerHTML = '<p>No payment requests yet.</p>';
+      return;
+    }
+
+    holder.innerHTML = `<div class="resource-list">` + requests.map(r => `
+      <div class="resource-item" style="align-items:flex-start;">
+        <div style="min-width:240px; flex:1;">
+          <div class="rtitle">${r.name||''} · ₹${r.amount||749.50}</div>
+          <div class="rmeta">${r.email||''}</div>
+          <div class="rmeta">UTR: ${r.utr||'—'} · Date: ${r.paymentDate||'—'}</div>
+          <div class="rmeta">Status: <strong>${r.status||'pending'}</strong></div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          ${r.status==='pending' ? `
+            <button class="btn btn-primary btn-sm" onclick="approvePayment('${r.id}','${r.uid}')">Verify &amp; activate</button>
+            <button class="btn btn-danger btn-sm" onclick="rejectPayment('${r.id}')">Reject</button>
+          ` : ''}
+        </div>
+      </div>
+    `).join('') + `</div>`;
+  }catch(err){
+    holder.innerHTML = `<div class="form-msg err">${err.message}</div>`;
+  }
+}
+
+async function approvePayment(requestId, uid){
+  if(!confirm('Confirm that you have independently verified this payment and want to activate Complete Prep?')) return;
+
+  try{
+    await db.collection('users').doc(uid).update({ plan:'paid' });
+    await db.collection('paymentRequests').doc(requestId).update({
+      status:'verified',
+      verifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      verifiedBy: currentUser.uid
+    });
+    await logActivity('admin_payment_verify', {requestId, targetUid:uid});
+    renderPaymentRequests();
+    renderAspirantTable();
+  }catch(err){
+    alert(err.message);
+  }
+}
+
+async function rejectPayment(requestId){
+  if(!confirm('Reject this payment request?')) return;
+
+  try{
+    await db.collection('paymentRequests').doc(requestId).update({
+      status:'rejected',
+      rejectedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      verifiedBy: currentUser.uid
+    });
+    await logActivity('admin_payment_reject', {requestId});
+    renderPaymentRequests();
+  }catch(err){
+    alert(err.message);
+  }
+}
+
+
+async function renderActivities(targetUid=null){
+  const holder=document.getElementById('activityList');
+  if(!holder) return;
+  holder.innerHTML='<p>Loading activity…</p>';
+  try{
+    const limit=parseInt(document.getElementById('activityLimit')?.value||100);
+    const filter=document.getElementById('activityFilter')?.value||'all';
+    let q=db.collection(ACTIVITY_COLLECTION).orderBy('createdAt','desc').limit(limit);
+    if(targetUid) q=q.where('uid','==',targetUid);
+    const snap=await q.get();
+    let rows=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(filter!=='all') rows=rows.filter(x=>x.type===filter);
+    if(!rows.length){holder.innerHTML='<p>No activity found.</p>';return;}
+    const label={signup:'Sign up',login:'Login',dashboard:'Dashboard',dashboard_tab:'Dashboard tab',practice_start:'Practice started',practice_submit:'Practice submitted',resource_open:'PDF opened/downloaded',payment_submit:'Payment submitted',logout:'Logout',admin_logout:'Admin logout',admin_plan_change:'Admin plan change',admin_user_status:'Admin status change',admin_user_delete:'Admin user removed',admin_question_add:'Admin question added',admin_question_delete:'Admin question deleted',admin_resource_add:'Admin resource added',admin_resource_delete:'Admin resource deleted',admin_payment_verify:'Payment verified',admin_payment_reject:'Payment rejected'};
+    holder.innerHTML='<div class="table-scroll"><table class="admin-table"><tr><th>Time</th><th>Aspirant</th><th>Activity</th><th>Details</th></tr>'+rows.map(a=>{
+      const time=a.createdAt?.toDate ? a.createdAt.toDate().toLocaleString() : '—';
+      const details=Object.entries(a).filter(([k])=>!['id','uid','email','type','createdAt'].includes(k)).map(([k,v])=>`${k}: ${typeof v==='object'?JSON.stringify(v):v}`).join(' · ');
+      return `<tr><td>${time}</td><td>${a.email||a.uid||'—'}</td><td><strong>${label[a.type]||a.type}</strong></td><td>${details||'—'}</td></tr>`;
+    }).join('')+'</table></div>';
+  }catch(err){ holder.innerHTML=`<div class="form-msg err">${err.message}</div>`; }
+}
+
+/* ---------------- init ---------------- */
+renderNav();
+showView('home');
+</script>
+</body>
+</html>
