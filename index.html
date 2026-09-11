@@ -1,1 +1,979 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=../test.html"><script>location.replace('../test.html'+location.search);</script></head><body>Opening…</body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADRE Success — Assam Direct Recruitment Examination Preparation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :root{
+    --tea-green: #234B3B;
+    --tea-green-dark: #153025;
+    --river-blue: #1F5C66;
+    --sunrise: #D79A3C;
+    --sunrise-soft: #EFC98A;
+    --paper: #FAF6ED;
+    --paper-warm: #F1E9D6;
+    --ink: #201C15;
+    --ink-soft: #5A5346;
+    --line: rgba(32,28,21,0.12);
+    --white: #FFFEFB;
+    --red: #B3432B;
+    --serif: 'Newsreader', Georgia, serif;
+    --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:var(--sans); color:var(--ink); background:var(--paper); line-height:1.55; -webkit-font-smoothing:antialiased;}
+  a{color:inherit;}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 24px;}
+  .hidden{display:none !important;}
+
+  header{position:sticky; top:0; z-index:50; background:rgba(250,246,237,0.94); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:16px 0; gap:12px; flex-wrap:wrap;}
+  .logo{display:flex; align-items:center; gap:10px; font-family:var(--serif); font-weight:600; font-size:1.2rem;}
+  .logo-mark{width:28px; height:28px; border-radius:50%; background:conic-gradient(from 200deg, var(--sunrise), var(--river-blue) 55%, var(--tea-green) 100%); flex-shrink:0;}
+  .nav-links{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  .navlink{font-size:0.9rem; font-weight:600; color:var(--ink-soft); text-decoration:none; padding:8px 6px; background:none; border:none; cursor:pointer; font-family:var(--sans);}
+  .navlink:hover{color:var(--tea-green-dark);}
+
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:11px 20px; border-radius:999px; font-weight:600; font-size:0.92rem; text-decoration:none; border:1px solid transparent; cursor:pointer; font-family:var(--sans); transition:transform .1s, background .15s;}
+  .btn-primary{background:var(--tea-green-dark); color:var(--white);}
+  .btn-primary:hover{background:var(--tea-green);}
+  .btn-ghost{background:transparent; color:var(--tea-green-dark); border-color:var(--line);}
+  .btn-ghost:hover{border-color:var(--tea-green-dark);}
+  .btn-danger{background:var(--white); color:var(--red); border-color:var(--red);}
+  .btn-danger:hover{background:var(--red); color:var(--white);}
+  .btn-sm{padding:7px 14px; font-size:0.82rem;}
+  .btn-block{width:100%;}
+  .btn:disabled{opacity:0.5; cursor:not-allowed;}
+
+  main{min-height:60vh;}
+  section{padding:56px 0;}
+
+  /* ---- Home ---- */
+  .hero{padding:56px 0 64px; background:radial-gradient(ellipse at top right, rgba(215,154,60,0.16), transparent 55%), var(--paper); border-bottom:1px solid var(--line);}
+  .eyebrow{font-size:0.86rem; color:var(--river-blue); font-weight:600; margin-bottom:14px;}
+  .hero h1{font-family:var(--serif); font-weight:600; font-size:clamp(1.9rem,5vw,2.9rem); line-height:1.1; max-width:16ch;}
+  .hero p.lead{margin-top:18px; font-size:1.05rem; color:var(--ink-soft); max-width:48ch;}
+  .hero-actions{margin-top:26px; display:flex; gap:12px; flex-wrap:wrap;}
+
+  .cover-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:14px; overflow:hidden; margin-top:36px;}
+  .cover-item{background:var(--white); padding:22px 20px;}
+  .cover-item h4{font-family:var(--serif); font-size:1.05rem; margin-bottom:6px;}
+  .cover-item p{font-size:0.88rem; color:var(--ink-soft);}
+
+  .plan-grid{display:grid; grid-template-columns:1fr; gap:20px; margin-top:20px;}
+  @media (min-width:700px){ .plan-grid{grid-template-columns:1fr 1fr;} }
+  .plan-card{background:var(--white); border:1px solid var(--line); border-radius:16px; padding:28px;}
+  .plan-card.featured{background:var(--tea-green-dark); color:var(--paper); border-color:var(--tea-green-dark);}
+  .plan-card h3{font-family:var(--serif); font-size:1.3rem;}
+  .plan-price{font-family:var(--serif); font-size:1.8rem; font-weight:600; margin-top:8px;}
+  .plan-card ul{list-style:none; margin-top:16px; display:flex; flex-direction:column; gap:8px; font-size:0.9rem;}
+  .plan-card li::before{content:"✓ "; color:var(--sunrise); font-weight:700;}
+
+  /* ---- Auth cards ---- */
+  .auth-wrap{display:flex; justify-content:center; padding:48px 0;}
+  .auth-card{background:var(--white); border:1px solid var(--line); border-radius:16px; padding:32px; width:100%; max-width:420px;}
+  .auth-tabs{display:flex; gap:6px; background:var(--paper-warm); padding:4px; border-radius:10px; margin-bottom:22px;}
+  .auth-tab{flex:1; text-align:center; padding:9px; border-radius:8px; border:none; background:none; font-weight:600; font-size:0.88rem; cursor:pointer; color:var(--ink-soft); font-family:var(--sans);}
+  .auth-tab.active{background:var(--white); color:var(--tea-green-dark); box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+  .auth-card h2{font-family:var(--serif); font-size:1.4rem; margin-bottom:6px;}
+  .auth-card p.sub{font-size:0.88rem; color:var(--ink-soft); margin-bottom:20px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:0.84rem; font-weight:600; margin-bottom:6px;}
+  .field input, .field select, .field textarea{width:100%; padding:11px 13px; border:1px solid var(--line); border-radius:9px; font-family:var(--sans); font-size:0.94rem; background:var(--paper);}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--sunrise); border-color:transparent;}
+  .form-msg{font-size:0.85rem; padding:10px 12px; border-radius:8px; margin-bottom:14px;}
+  .form-msg.err{background:#F7E1DB; color:var(--red);}
+  .form-msg.ok{background:#E1EEE3; color:var(--tea-green-dark);}
+
+  .legal-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:24px;}
+  .legal-card h3{font-family:var(--serif);font-size:1.2rem;margin-bottom:10px;}
+  .legal-card p,.legal-card li{font-size:.9rem;color:var(--ink-soft);}
+  .legal-card ul{padding-left:20px;margin-top:10px;}
+  .legal-card li{margin-bottom:6px;}
+
+  /* ---- Dashboard ---- */
+  .dash-head{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:28px;}
+  .dash-head h1{font-family:var(--serif); font-size:1.7rem;}
+  .badge{display:inline-block; font-size:0.75rem; font-weight:700; padding:4px 11px; border-radius:999px; margin-left:8px; vertical-align:middle;}
+  .badge.free{background:var(--paper-warm); color:var(--ink-soft);}
+  .badge.paid{background:var(--sunrise); color:var(--tea-green-dark);}
+
+  .tabs{display:flex; gap:8px; flex-wrap:wrap; border-bottom:1px solid var(--line); margin-bottom:24px;}
+  .tab-btn{padding:10px 4px; margin-right:18px; background:none; border:none; border-bottom:2px solid transparent; font-weight:600; font-size:0.92rem; color:var(--ink-soft); cursor:pointer; font-family:var(--sans);}
+  .tab-btn.active{color:var(--tea-green-dark); border-color:var(--tea-green-dark);}
+
+  .qcard{background:var(--white); border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:14px;}
+  .qcard p.qtext{font-weight:600; margin-bottom:12px; font-size:0.96rem;}
+  .qcard .opt{display:flex; align-items:center; gap:8px; padding:8px 0; font-size:0.9rem;}
+  .qcard .opt input{margin:0;}
+  .qcard .result{margin-top:10px; font-size:0.85rem; font-weight:600; display:none;}
+  .qcard.correct .result.right{display:block; color:var(--tea-green-dark);}
+  .qcard.wrong .result.wrong{display:block; color:var(--red);}
+
+  .lock-card{background:var(--paper-warm); border:1px dashed var(--ink-soft); border-radius:14px; padding:32px; text-align:center;}
+  .lock-card h3{font-family:var(--serif); font-size:1.2rem; margin-bottom:8px;}
+  .lock-card p{color:var(--ink-soft); font-size:0.92rem; margin-bottom:18px;}
+
+  .resource-list{display:flex; flex-direction:column; gap:10px;}
+  .resource-item{display:flex; justify-content:space-between; align-items:center; gap:12px; background:var(--white); border:1px solid var(--line); border-radius:10px; padding:14px 18px; flex-wrap:wrap;}
+  .resource-item .rtitle{font-weight:600; font-size:0.94rem;}
+  .resource-item .rmeta{font-size:0.8rem; color:var(--ink-soft);}
+
+  .score-pill{display:inline-block; background:var(--tea-green-dark); color:var(--white); padding:6px 14px; border-radius:999px; font-size:0.85rem; font-weight:600; margin-bottom:16px;}
+
+  /* ---- Admin ---- */
+  .admin-table{width:100%; border-collapse:collapse; background:var(--white); border:1px solid var(--line); border-radius:12px; overflow:hidden; font-size:0.86rem;}
+  .admin-table th, .admin-table td{text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top;}
+  .admin-table th{background:var(--paper-warm); font-size:0.78rem;}
+  .table-scroll{overflow-x:auto; border-radius:12px;}
+  .admin-panel{background:var(--white); border:1px solid var(--line); border-radius:14px; padding:22px; margin-bottom:24px;}
+  .admin-panel h3{font-family:var(--serif); font-size:1.15rem; margin-bottom:16px;}
+  .grid-2{display:grid; grid-template-columns:1fr; gap:12px;}
+  @media (min-width:640px){ .grid-2{grid-template-columns:1fr 1fr;} }
+  .opt-row{display:flex; gap:8px; align-items:center; margin-bottom:8px;}
+  .opt-row input[type=text]{flex:1;}
+  .small-note{font-size:0.8rem; color:var(--ink-soft); margin-top:6px;}
+
+  footer{background:var(--tea-green-dark); color:rgba(250,246,237,0.7); padding:32px 0; margin-top:40px; font-size:0.85rem;}
+  footer .wrap{display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo"><span class="logo-mark"></span>ADRE Success</div>
+    <div class="nav-links" id="navLinks"></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- HOME -->
+  <section id="view-home">
+    <div class="hero">
+      <div class="eyebrow">ADRE Grade III &amp; IV Preparation</div>
+      <h1>Prepare for the Assam Direct Recruitment Exam with a plan built for it.</h1>
+      <p class="lead">Create a free account for 50 online practice questions in every ADRE subject category, or choose Complete Prep for downloadable PDF notes, 365 practice questions, and 5 ADRE model question papers.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="showAuth('signup')">Create free account</button>
+        <button class="btn btn-ghost" onclick="showAuth('login')">Log in</button>
+      </div>
+      <p style="width:100%; font-size:0.82rem; color:var(--ink-soft); margin-top:2px;">ADRE Grade III &amp; Grade IV preparation • General Knowledge • Social Studies • General English • General Mathematics • Mental Ability &amp; Logical Reasoning</p>
+      <div class="cover-grid">
+        <div class="cover-item"><h4>General Knowledge</h4><p>Assam &amp; India GK, current affairs, science, culture and important facts.</p></div>
+        <div class="cover-item"><h4>Social Studies</h4><p>Assam and Indian history, geography, polity and social studies.</p></div>
+        <div class="cover-item"><h4>General English</h4><p>Grammar, vocabulary, comprehension and sentence-based questions.</p></div>
+        <div class="cover-item"><h4>General Mathematics</h4><p>Arithmetic, percentages, ratio, profit &amp; loss, algebra and mensuration.</p></div>
+        <div class="cover-item"><h4>Mental Ability &amp; Logical Reasoning</h4><p>Series, coding-decoding, directions, relationships, puzzles and logical reasoning.</p></div>
+      </div>
+    </div>
+
+    <section>
+      <div class="eyebrow">Pick a track</div>
+      <h2 style="font-family:var(--serif); font-size:1.6rem;">Start free. Upgrade any time.</h2>
+      <div class="plan-grid">
+        <div class="plan-card">
+          <h3>Foundation — Free</h3>
+          <div class="plan-price">₹0</div>
+          <ul>
+            <li>50 online practice questions in every ADRE subject category</li>
+            <li>All 5 core ADRE subject areas covered</li>
+            <li>Instant online scoring and answer feedback</li>
+          </ul>
+          <button class="btn btn-ghost btn-block" style="margin-top:18px;" onclick="showAuth('signup')">Start free</button>
+        </div>
+        <div class="plan-card featured">
+          <h3>Complete Prep</h3>
+          <div class="plan-price">₹1,499</div>
+          <ul>
+            <li>Downloadable PDF notes covering the ADRE syllabus</li>
+            <li>365 ADRE practice questions online</li>
+            <li>5 ADRE model question papers</li>
+            <li>Everything in the Free course</li>
+          </ul>
+          <button class="btn" style="margin-top:18px; background:var(--sunrise); color:var(--tea-green-dark);" onclick="showAuth('signup')">Get Complete Prep</button><p style="font-size:0.78rem; margin-top:10px; opacity:0.78;">365 questions + PDF notes + 5 model papers</p><p style="font-size:0.78rem; margin-top:6px; opacity:0.78;">UPI: 9678945621 • Admin verification required</p>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- AUTH -->
+  <section id="view-auth" class="hidden">
+    <div class="auth-wrap">
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <button class="auth-tab" id="tabLogin" onclick="showAuth('login')">Log in</button>
+          <button class="auth-tab" id="tabSignup" onclick="showAuth('signup')">Sign up</button>
+        </div>
+
+        <div id="loginForm">
+          <h2>Welcome back</h2>
+          <p class="sub">Log in to your ADRE Success account.</p>
+          <div id="loginMsg"></div>
+          <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"></div>
+          <div class="field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
+          <button class="btn btn-primary btn-block" onclick="handleLogin()">Log in</button>
+        </div>
+
+        <div id="signupForm" class="hidden">
+          <h2>Create your account</h2>
+          <p class="sub">Free ADRE practice forever. Upgrade to Complete Prep any time.</p>
+          <div id="signupMsg"></div>
+          <div class="field"><label>Full name</label><input type="text" id="signupName" placeholder="Your name"></div>
+          <div class="field"><label>Email</label><input type="email" id="signupEmail" placeholder="you@example.com"></div>
+          <div class="field"><label>Password</label><input type="password" id="signupPassword" placeholder="At least 6 characters"></div>
+          <div class="field"><label>Confirm password</label><input type="password" id="signupConfirm" placeholder="Re-enter password"></div>
+          <button class="btn btn-primary btn-block" onclick="handleSignup()">Create account</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="view-about" class="hidden">
+    <div class="dash-head"><h1>About ADRE Success</h1><button class="btn btn-ghost btn-sm" onclick="showView('home')">Back to home</button></div>
+    <div class="legal-card">
+      <h3>Focused ADRE preparation</h3>
+      <p>ADRE Success is an online preparation platform focused exclusively on the Assam Direct Recruitment Examination (ADRE).</p>
+      <p style="margin-top:10px;">The Free course provides 50 online practice questions in every ADRE subject category. Complete Prep provides downloadable PDF notes, 365 practice questions and 5 ADRE model question papers.</p>
+      <p style="margin-top:10px;">ADRE Success is independently operated and is not affiliated with or endorsed by the Assam Direct Recruitment Commission.</p>
+    </div>
+  </section>
+
+  <!-- PRIVACY -->
+  <section id="view-privacy" class="hidden">
+    <div class="dash-head"><h1>Privacy Policy</h1><button class="btn btn-ghost btn-sm" onclick="showView('home')">Back to home</button></div>
+    <div class="legal-card">
+      <h3>Information we collect</h3>
+      <p>When you create an account, ADRE Success stores your name, email address, account plan and account timestamps. Payment verification requests may contain your UTR/transaction ID and payment date.</p>
+      <h3 style="margin-top:18px;">How we use information</h3>
+      <ul>
+        <li>To create and manage your ADRE Success account.</li>
+        <li>To provide Free or Complete Prep access according to your account status.</li>
+        <li>To verify manual UPI payments and provide support.</li>
+        <li>To maintain website security and prevent unauthorized access.</li>
+      </ul>
+      <h3 style="margin-top:18px;">Security</h3>
+      <p>We do not sell your personal information. Firebase is used for authentication and application data. Never send your UPI PIN, OTP, bank password or other confidential banking credentials to us.</p>
+    </div>
+  </section>
+
+  <!-- REFUND -->
+  <section id="view-refund" class="hidden">
+    <div class="dash-head"><h1>Refund Policy</h1><button class="btn btn-ghost btn-sm" onclick="showView('home')">Back to home</button></div>
+    <div class="legal-card">
+      <h3>24-hour refund window</h3>
+      <p>For Complete Prep, a refund request must be submitted within <strong>24 hours of payment</strong>.</p>
+      <ul>
+        <li>Contact support with your registered email, payment date and UTR/transaction ID.</li>
+        <li>Refund eligibility will be checked against the payment and account records.</li>
+        <li>Requests submitted after 24 hours may not be eligible under this policy.</li>
+        <li>Never send your UPI PIN, OTP, password or banking credentials with a refund request.</li>
+      </ul>
+      <p style="margin-top:12px;">Support: supportadresuccess@gmail.com</p>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="view-contact" class="hidden">
+    <div class="dash-head"><h1>Contact Us</h1><button class="btn btn-ghost btn-sm" onclick="showView('home')">Back to home</button></div>
+    <div class="legal-card">
+      <h3>ADRE Success Support</h3>
+      <p>For account issues, payment verification, course access or refund requests:</p>
+      <p style="margin-top:12px;font-size:1rem;"><strong>Email:</strong> <a href="mailto:supportadresuccess@gmail.com">supportadresuccess@gmail.com</a></p>
+      <p style="margin-top:8px;font-size:1rem;"><strong>Payment receipt WhatsApp:</strong> 7002137940</p>
+      <p style="margin-top:12px;font-size:.82rem;">For payment verification, include your registered email and UTR/transaction ID. Never share your UPI PIN or OTP.</p>
+    </div>
+  </section>
+
+  <!-- ASPIRANT DASHBOARD -->
+  <section id="view-dashboard" class="hidden">
+    <div class="dash-head">
+      <h1 id="dashWelcome">Welcome</h1>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="practice" onclick="switchDashTab('practice')">Practice questions</button>
+      <button class="tab-btn" data-tab="notes" onclick="switchDashTab('notes')">PDF notes</button>
+      <button class="tab-btn" data-tab="papers" onclick="switchDashTab('papers')">Model papers</button>
+    </div>
+    <div id="dashPractice"></div>
+    <div id="dashNotes" class="hidden"></div>
+    <div id="dashPapers" class="hidden"></div>
+  </section>
+
+  <!-- ADMIN DASHBOARD -->
+  <section id="view-admin" class="hidden">
+    <div class="dash-head">
+      <h1>Admin backend</h1>
+      <button class="btn btn-ghost btn-sm" onclick="adminLogout()">Log out</button>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="aspirants" onclick="switchAdminTab('aspirants')">Aspirants</button>
+      <button class="tab-btn" data-tab="questions" onclick="switchAdminTab('questions')">Questions</button>
+      <button class="tab-btn" data-tab="resources" onclick="switchAdminTab('resources')">Papers &amp; notes</button>\n      <button class="tab-btn" data-tab="payments" onclick="switchAdminTab('payments')">Payments</button>
+    </div>
+
+    <div id="adminAspirants">
+      <div class="admin-panel">
+        <h3>Registered aspirants</h3>
+        <div class="table-scroll">
+          <table class="admin-table" id="aspirantTable"></table>
+        </div>
+      </div>
+    </div>
+
+    <div id="adminQuestions" class="hidden">
+      <div class="admin-panel">
+        <h3>Add a question</h3>
+        <div class="grid-2">
+          <div class="field"><label>Category</label>
+            <select id="qCategory">
+              <option>General Knowledge</option>
+              <option>Social Studies</option>
+              <option>General English</option>
+              <option>General Mathematics</option>
+              <option>Mental Ability &amp; Logical Reasoning</option>
+            </select>
+          </div>
+          <div class="field"><label>Tier</label>
+            <select id="qTier"><option value="free">Free</option><option value="paid">Paid</option></select>
+          </div>
+        </div>
+        <div class="field"><label>Question</label><textarea id="qText" rows="2" placeholder="Type the question"></textarea></div>
+        <div id="qOptions">
+          <div class="opt-row"><input type="radio" name="qCorrect" value="0" checked><input type="text" class="qOptInput" placeholder="Option A"></div>
+          <div class="opt-row"><input type="radio" name="qCorrect" value="1"><input type="text" class="qOptInput" placeholder="Option B"></div>
+          <div class="opt-row"><input type="radio" name="qCorrect" value="2"><input type="text" class="qOptInput" placeholder="Option C"></div>
+          <div class="opt-row"><input type="radio" name="qCorrect" value="3"><input type="text" class="qOptInput" placeholder="Option D"></div>
+        </div>
+        <p class="small-note">Select the radio button next to the correct option.</p>
+        <button class="btn btn-primary" style="margin-top:12px;" onclick="addQuestion()">Add question</button>
+        <div id="qMsg"></div>
+      </div>
+      <div class="admin-panel">
+        <h3>Existing questions</h3>
+        <div id="questionList"></div>
+      </div>
+    </div>
+
+    <div id="adminPayments" class="hidden">
+      <div class="admin-panel">
+        <h3>Payment verification</h3>
+        <p class="small-note" style="margin-bottom:14px;">
+          Review the student's UTR/payment details and activate Complete Prep only after independently verifying the payment.
+        </p>
+        <div id="paymentRequestsList"><p>Loading…</p></div>
+      </div>
+    </div>
+
+    <div id="adminResources" class="hidden">
+      <div class="admin-panel">
+        <h3>Add PDF notes or a model paper</h3>
+        <div class="grid-2">
+          <div class="field"><label>Type</label>
+            <select id="rType"><option value="notes">PDF notes</option><option value="paper">Model question paper</option></select>
+          </div>
+          <div class="field"><label>Category / set label</label><input type="text" id="rCategory" placeholder="e.g. General Knowledge, or Set 1"></div>
+        </div>
+        <div class="field"><label>Title</label><input type="text" id="rTitle" placeholder="e.g. Assam History — Complete Notes"></div>
+        <div class="field"><label>Link to the file (PDF hosted elsewhere, e.g. Google Drive)</label><input type="text" id="rLink" placeholder="https://..."></div>
+        <p class="small-note">Paste the link to the downloadable PDF or model paper hosted in your chosen file-storage service. Aspirants will open the resource from their dashboard.</p>
+        <button class="btn btn-primary" style="margin-top:12px;" onclick="addResource()">Add</button>
+        <div id="rMsg"></div>
+      </div>
+      <div class="admin-panel">
+        <h3>Existing papers &amp; notes</h3>
+        <div id="resourceList"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap" style="align-items:center;">
+    <div><span>© 2026 ADRE Success. ADRE preparation platform. Not affiliated with the Assam Direct Recruitment Commission.</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="navlink" style="color:rgba(250,246,237,0.75);" onclick="showView('about')">About</button>
+      <button class="navlink" style="color:rgba(250,246,237,0.75);" onclick="showView('privacy')">Privacy</button>
+      <button class="navlink" style="color:rgba(250,246,237,0.75);" onclick="showView('refund')">Refund</button>
+      <button class="navlink" style="color:rgba(250,246,237,0.75);" onclick="showView('contact')">Contact</button>
+      <button class="navlink" style="color:rgba(250,246,237,0.75);" onclick="goAdmin()">Admin</button>
+    </div>
+  </div>
+</footer>
+
+
+<script>
+/* ================= Firebase setup =================
+   Paste your project's config values below (from
+   Firebase console > Project settings > General > Your apps). */
+const firebaseConfig = {
+  apiKey: "AIzaSyA446iTLv03wavIBJNNvkji-rBKcJ_R2tA",
+  authDomain: "adre-success.firebaseapp.com",
+  projectId: "adre-success",
+  storageBucket: "adre-success.firebasestorage.app",
+  messagingSenderId: "793270515069",
+  appId: "1:793270515069:web:043b318990d747e7194814"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+// Don't persist sessions to browser storage while previewing inside Claude.
+// (Safe to remove this line once the site is hosted on your own domain.)
+auth.setPersistence(firebase.auth.Auth.Persistence.NONE);
+
+/* ---------------- session (in-memory only) ---------------- */
+let currentUser = null; // { uid, email, name, plan, isAdmin }
+let dashTab = 'practice';
+let adminTab = 'aspirants';
+
+function friendlyFirebaseError(err){
+  const map = {
+    'auth/email-already-in-use': 'An account with this email already exists.',
+    'auth/invalid-email': 'That email address looks invalid.',
+    'auth/weak-password': 'Password must be at least 6 characters.',
+    'auth/user-not-found': 'Incorrect email or password.',
+    'auth/wrong-password': 'Incorrect email or password.',
+    'auth/invalid-credential': 'Incorrect email or password.',
+    'auth/too-many-requests': 'Too many attempts — please wait a moment and try again.'
+  };
+  return map[err.code] || err.message || 'Something went wrong. Please try again.';
+}
+
+/* ---------------- nav & view switching ---------------- */
+function renderNav(){
+  const nav = document.getElementById('navLinks');
+  if(!currentUser){
+    nav.innerHTML = `<button class="navlink" onclick="showAuth('login')">Log in</button>
+      <button class="btn btn-primary btn-sm" onclick="showAuth('signup')">Sign up</button>`;
+    return;
+  }
+  let html = `<button class="navlink" onclick="showView('dashboard')">Dashboard</button>`;
+  if(currentUser.isAdmin){
+    html += `<button class="navlink" onclick="goAdmin()">Admin panel</button>`;
+  }
+  html += `<button class="navlink" onclick="logout()">Log out</button>`;
+  nav.innerHTML = html;
+}
+
+function showView(name){
+  ['home','auth','dashboard','admin','about','privacy','refund','contact'].forEach(v=>{
+    document.getElementById('view-'+v).classList.toggle('hidden', v!==name);
+  });
+  window.scrollTo(0,0);
+}
+
+function showAuth(tab){
+  showView('auth');
+  document.getElementById('loginForm').classList.toggle('hidden', tab!=='login');
+  document.getElementById('signupForm').classList.toggle('hidden', tab!=='signup');
+  document.getElementById('tabLogin').classList.toggle('active', tab==='login');
+  document.getElementById('tabSignup').classList.toggle('active', tab==='signup');
+}
+
+/* ---------------- aspirant auth ---------------- */
+async function handleSignup(){
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim().toLowerCase();
+  const pw = document.getElementById('signupPassword').value;
+  const pw2 = document.getElementById('signupConfirm').value;
+  const msg = document.getElementById('signupMsg');
+  msg.innerHTML = '';
+
+  if(!name || !email || !pw){ msg.innerHTML = '<div class="form-msg err">Please fill in every field.</div>'; return; }
+  if(pw.length < 6){ msg.innerHTML = '<div class="form-msg err">Password must be at least 6 characters.</div>'; return; }
+  if(pw !== pw2){ msg.innerHTML = "<div class=\"form-msg err\">Passwords don't match.</div>"; return; }
+
+  try{
+    const cred = await auth.createUserWithEmailAndPassword(email, pw);
+    await db.collection('users').doc(cred.user.uid).set({
+      email, name, plan: 'free', isAdmin: false,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    currentUser = { uid: cred.user.uid, email, name, plan: 'free', isAdmin: false };
+    renderNav();
+    await openDashboard();
+  }catch(err){
+    msg.innerHTML = `<div class="form-msg err">${friendlyFirebaseError(err)}</div>`;
+  }
+}
+
+async function handleLogin(){
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pw = document.getElementById('loginPassword').value;
+  const msg = document.getElementById('loginMsg');
+  msg.innerHTML = '';
+  try{
+    const cred = await auth.signInWithEmailAndPassword(email, pw);
+    const doc = await db.collection('users').doc(cred.user.uid).get();
+    const d = doc.data() || {};
+    currentUser = { uid: cred.user.uid, email: cred.user.email, name: d.name || '', plan: d.plan || 'free', isAdmin: d.isAdmin || false };
+    renderNav();
+    if(currentUser.isAdmin) goAdmin();
+    else await openDashboard();
+  }catch(err){
+    msg.innerHTML = `<div class="form-msg err">${friendlyFirebaseError(err)}</div>`;
+  }
+}
+
+async function logout(){
+  await auth.signOut();
+  currentUser = null;
+  renderNav();
+  showView('home');
+}
+
+async function adminLogout(){
+  await auth.signOut();
+  currentUser = null;
+  renderNav();
+  showView('home');
+}
+
+function goAdmin(){
+  if(!currentUser){ showAuth('login'); return; }
+  if(!currentUser.isAdmin){ alert("This account doesn't have admin access."); return; }
+  showView('admin');
+  switchAdminTab('aspirants');
+}
+
+/* ---------------- aspirant dashboard ---------------- */
+async function openDashboard(){
+  document.getElementById('dashWelcome').innerHTML =
+    `Welcome, ${currentUser.name} <span class="badge ${currentUser.plan}">${currentUser.plan === 'paid' ? 'Complete Prep' : 'Free'}</span>`;
+  showView('dashboard');
+  dashTab = 'practice';
+  switchDashTab('practice');
+}
+
+function switchDashTab(tab){
+  dashTab = tab;
+  document.querySelectorAll('#view-dashboard .tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.getElementById('dashPractice').classList.toggle('hidden', tab!=='practice');
+  document.getElementById('dashNotes').classList.toggle('hidden', tab!=='notes');
+  document.getElementById('dashPapers').classList.toggle('hidden', tab!=='papers');
+  if(tab==='practice') renderPractice();
+  if(tab==='notes') renderResourcesForAspirant('notes');
+  if(tab==='papers') renderResourcesForAspirant('paper');
+}
+
+async function renderPractice(){
+  const holder = document.getElementById('dashPractice');
+  holder.innerHTML = '<p>Loading questions…</p>';
+  const snap = await db.collection('questions').get();
+  const questions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const visible = questions.filter(q => q.tier === 'free' || currentUser.plan === 'paid');
+  if(visible.length === 0){
+    holder.innerHTML = '<p>No questions have been added yet — check back soon.</p>';
+    return;
+  }
+  const cats = [...new Set(visible.map(q=>q.category))];
+  let html = `<div class="score-pill" id="scorePill">Score: — </div>`;
+  cats.forEach(cat=>{
+    html += `<h3 style="font-family:var(--serif); margin:18px 0 10px;">${cat}</h3>`;
+    visible.filter(q=>q.category===cat).forEach(q=>{
+      html += `<div class="qcard" id="qc-${q.id}">
+        <p class="qtext">${q.question} ${q.tier==='paid' ? '<span class="badge paid">Paid</span>' : ''}</p>`;
+      q.options.forEach((opt,i)=>{
+        html += `<label class="opt"><input type="radio" name="ans-${q.id}" value="${i}">${opt}</label>`;
+      });
+      html += `<div class="result right">Correct!</div><div class="result wrong">Not quite — correct answer: ${q.options[q.correct]}</div>
+      </div>`;
+    });
+  });
+  html += `<button class="btn btn-primary" onclick="checkAnswers()">Check my answers</button>`;
+  holder.innerHTML = html;
+  window._visibleQuestions = visible;
+}
+
+function checkAnswers(){
+  const questions = window._visibleQuestions || [];
+  let correct = 0;
+  questions.forEach(q=>{
+    const picked = document.querySelector(`input[name="ans-${q.id}"]:checked`);
+    const card = document.getElementById('qc-'+q.id);
+    card.classList.remove('correct','wrong');
+    if(picked){
+      if(parseInt(picked.value) === q.correct){ card.classList.add('correct'); correct++; }
+      else{ card.classList.add('wrong'); }
+    }
+  });
+  document.getElementById('scorePill').textContent = `Score: ${correct} / ${questions.length}`;
+}
+
+async function renderResourcesForAspirant(type){
+  const holder = type==='notes' ? document.getElementById('dashNotes') : document.getElementById('dashPapers');
+  if(currentUser.plan !== 'paid'){
+    holder.innerHTML = `<div class="lock-card">
+      <h3>Complete Prep only</h3>
+      <p>${type==='notes' ? 'Downloadable ADRE PDF notes are' : 'ADRE model question papers are'} part of the paid course.</p>
+      <button class="btn btn-primary" onclick="upgradeToPaid()">Upgrade to Complete Prep — ₹1,499</button>
+    </div>`;
+    return;
+  }
+  holder.innerHTML = '<p>Loading…</p>';
+  const snap = await db.collection('resources').where('type','==',type).get();
+  const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if(list.length===0){ holder.innerHTML = '<p>Nothing has been uploaded yet — check back soon.</p>'; return; }
+  holder.innerHTML = `<div class="resource-list">` + list.map(r=>`
+    <div class="resource-item">
+      <div><div class="rtitle">${r.title}</div><div class="rmeta">${r.category||''}</div></div>
+      <a href="${r.link}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">Open</a>
+    </div>`).join('') + `</div>`;
+}
+
+async function upgradeToPaid(){
+  if(!currentUser) return;
+  showPaymentPanel();
+}
+
+function showPaymentPanel(){
+  const holder = document.getElementById('dashPractice');
+  const existing = document.getElementById('paymentPanel');
+  if(existing){ existing.scrollIntoView({behavior:'smooth',block:'start'}); return; }
+
+  const panel = document.createElement('div');
+  panel.id = 'paymentPanel';
+  panel.className = 'admin-panel';
+  panel.innerHTML = `
+    <h3>Complete Prep — ₹1,499</h3>
+    <p style="color:var(--ink-soft);font-size:.9rem;margin-bottom:14px;">Pay by UPI. Access is activated only after admin verification.</p>
+    <div style="background:var(--paper-warm);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:.82rem;color:var(--ink-soft);">UPI payment number</div>
+      <div style="font-family:var(--serif);font-size:1.45rem;font-weight:600;margin-top:4px;">9678945621</div>
+      <div style="font-size:.82rem;color:var(--ink-soft);margin-top:6px;">Pay exactly ₹1,499.</div>
+    </div>
+    <div class="field"><label>UPI transaction / UTR number</label><input type="text" id="paymentUtr" placeholder="Enter UTR / transaction ID"></div>
+    <div class="field"><label>Payment date</label><input type="date" id="paymentDate"></div>
+    <div id="paymentMsg"></div>
+    <button class="btn btn-primary" onclick="submitPaymentRequest()">Submit for verification</button>
+    <button class="btn btn-ghost" style="margin-left:8px;" onclick="closePaymentPanel()">Cancel</button>
+    <p class="small-note" style="margin-top:14px;">Then send the payment receipt/screenshot to WhatsApp <strong>7002137940</strong>. Admin will cross-verify the payment before activation.</p>
+  `;
+  holder.prepend(panel);
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function closePaymentPanel(){
+  const panel = document.getElementById('paymentPanel');
+  if(panel) panel.remove();
+}
+
+async function submitPaymentRequest(){
+  const utr = document.getElementById('paymentUtr').value.trim();
+  const paymentDate = document.getElementById('paymentDate').value;
+  const msg = document.getElementById('paymentMsg');
+  msg.innerHTML = '';
+
+  if(!utr || !paymentDate){
+    msg.innerHTML = '<div class="form-msg err">Please enter the UTR/transaction ID and payment date.</div>';
+    return;
+  }
+
+  try{
+    await db.collection('paymentRequests').add({
+      uid: currentUser.uid,
+      name: currentUser.name,
+      email: currentUser.email,
+      amount: 1499,
+      utr,
+      paymentDate,
+      status: 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    msg.innerHTML = '<div class="form-msg ok">Payment submitted for verification. Please send the receipt to WhatsApp 7002137940. Access will be activated after admin verification.</div>';
+  }catch(err){
+    msg.innerHTML = `<div class="form-msg err">${err.message}</div>`;
+  }
+}
+
+function showPaymentPanel(){
+  const holder = document.getElementById('dashPractice');
+  const existing = document.getElementById('paymentPanel');
+  if(existing){
+    existing.scrollIntoView({behavior:'smooth', block:'start'});
+    return;
+  }
+
+  const panel = document.createElement('div');
+  panel.id = 'paymentPanel';
+  panel.className = 'admin-panel';
+  panel.style.marginBottom = '24px';
+  panel.innerHTML = `
+    <h3>Complete Prep — Payment</h3>
+    <p style="color:var(--ink-soft); font-size:0.9rem; margin-bottom:14px;">
+      Pay the course fee of <strong>₹1,499</strong> by UPI. Your Complete Prep access will be activated
+      only after the admin verifies your payment.
+    </p>
+
+    <div style="background:var(--paper-warm); border-radius:12px; padding:16px; margin-bottom:16px;">
+      <div style="font-size:0.82rem; color:var(--ink-soft);">UPI payment number</div>
+      <div style="font-family:var(--serif); font-size:1.45rem; font-weight:600; margin-top:4px;">9678945621</div>
+      <div style="font-size:0.82rem; color:var(--ink-soft); margin-top:6px;">
+        Send exactly ₹1,499, then submit your payment details below.
+      </div>
+    </div>
+
+    <div class="field">
+      <label>UPI transaction / UTR number</label>
+      <input type="text" id="paymentUtr" placeholder="Enter your UTR / transaction ID">
+    </div>
+    <div class="field">
+      <label>Payment date</label>
+      <input type="date" id="paymentDate">
+    </div>
+
+    <div id="paymentMsg"></div>
+
+    <button class="btn btn-primary" onclick="submitPaymentRequest()">Submit payment for verification</button>
+    <button class="btn btn-ghost" style="margin-left:8px;" onclick="closePaymentPanel()">Cancel</button>
+
+    <p class="small-note" style="margin-top:14px;">
+      After submission, send the payment receipt/screenshot to the admin WhatsApp number
+      <strong>7002137940</strong>. The admin will cross-verify the payment and activate your paid course.
+    </p>
+  `;
+
+  holder.prepend(panel);
+  panel.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function closePaymentPanel(){
+  const panel = document.getElementById('paymentPanel');
+  if(panel) panel.remove();
+}
+
+async function submitPaymentRequest(){
+  const utr = document.getElementById('paymentUtr').value.trim();
+  const paymentDate = document.getElementById('paymentDate').value;
+  const msg = document.getElementById('paymentMsg');
+
+  msg.innerHTML = '';
+
+  if(!utr || !paymentDate){
+    msg.innerHTML = '<div class="form-msg err">Please enter the UTR/transaction ID and payment date.</div>';
+    return;
+  }
+
+  try{
+    await db.collection('paymentRequests').add({
+      uid: currentUser.uid,
+      name: currentUser.name,
+      email: currentUser.email,
+      amount: 1499,
+      utr,
+      paymentDate,
+      status: 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    msg.innerHTML = '<div class="form-msg ok">Payment submitted for verification. Please send your payment receipt to WhatsApp 7002137940. Your paid course will be activated after admin verification.</div>';
+  }catch(err){
+    msg.innerHTML = `<div class="form-msg err">${err.message}</div>`;
+  }
+}
+
+/* ---------------- admin ---------------- */
+function switchAdminTab(tab){
+  adminTab = tab;
+  document.querySelectorAll('#view-admin .tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.getElementById('adminAspirants').classList.toggle('hidden', tab!=='aspirants');
+  document.getElementById('adminQuestions').classList.toggle('hidden', tab!=='questions');
+  document.getElementById('adminResources').classList.toggle('hidden', tab!=='resources');
+  document.getElementById('adminPayments').classList.toggle('hidden', tab!=='payments');
+  if(tab==='aspirants') renderAspirantTable();
+  if(tab==='questions') renderQuestionList();
+  if(tab==='resources') renderResourceListAdmin();
+  if(tab==='payments') renderPaymentRequests();
+}
+
+async function renderAspirantTable(){
+  const table = document.getElementById('aspirantTable');
+  table.innerHTML = '<tr><td style="padding:16px;">Loading…</td></tr>';
+  const snap = await db.collection('users').orderBy('createdAt','desc').get();
+  const users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if(users.length===0){ table.innerHTML = '<tr><td style="padding:16px;">No aspirants have signed up yet.</td></tr>'; return; }
+  table.innerHTML = `<tr><th>Name</th><th>Email</th><th>Plan</th><th>Joined</th><th></th></tr>` +
+    users.map(u=>`<tr>
+      <td>${u.name||''}</td>
+      <td>${u.email||''}</td>
+      <td><span class="badge ${u.plan}">${u.plan}</span></td>
+      <td>${u.createdAt ? u.createdAt.toDate().toLocaleDateString() : '—'}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="toggleUserPlan('${u.id}')">Toggle plan</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">Remove</button>
+      </td>
+    </tr>`).join('');
+}
+async function toggleUserPlan(id){
+  const doc = await db.collection('users').doc(id).get();
+  const newPlan = doc.data().plan === 'paid' ? 'free' : 'paid';
+  await db.collection('users').doc(id).update({ plan: newPlan });
+  renderAspirantTable();
+}
+async function deleteUser(id){
+  if(!confirm("Remove this aspirant's account record? (This removes their profile and access; their login itself would need to be removed separately from the Firebase console.)")) return;
+  await db.collection('users').doc(id).delete();
+  renderAspirantTable();
+}
+
+async function addQuestion(){
+  const category = document.getElementById('qCategory').value;
+  const tier = document.getElementById('qTier').value;
+  const text = document.getElementById('qText').value.trim();
+  const optionInputs = document.querySelectorAll('.qOptInput');
+  const options = Array.from(optionInputs).map(i=>i.value.trim());
+  const correct = parseInt(document.querySelector('input[name="qCorrect"]:checked').value);
+  const msg = document.getElementById('qMsg');
+
+  if(!text || options.some(o=>!o)){ msg.innerHTML = '<div class="form-msg err">Fill in the question and all four options.</div>'; return; }
+
+  try{
+    await db.collection('questions').add({
+      category, tier, question: text, options, correct,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    msg.innerHTML = '<div class="form-msg ok">Question added.</div>';
+    document.getElementById('qText').value = '';
+    optionInputs.forEach(i=>i.value='');
+    renderQuestionList();
+  }catch(err){
+    msg.innerHTML = `<div class="form-msg err">${err.message}</div>`;
+  }
+}
+async function renderQuestionList(){
+  const holder = document.getElementById('questionList');
+  holder.innerHTML = '<p>Loading…</p>';
+  const snap = await db.collection('questions').get();
+  const questions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if(questions.length===0){ holder.innerHTML = '<p>No questions yet.</p>'; return; }
+  holder.innerHTML = questions.map(q=>`
+    <div class="qcard">
+      <p class="qtext">${q.question} <span class="badge ${q.tier}">${q.tier}</span> · <span class="rmeta">${q.category}</span></p>
+      <p class="rmeta">Correct: ${q.options[q.correct]}</p>
+      <button class="btn btn-danger btn-sm" style="margin-top:8px;" onclick="deleteQuestion('${q.id}')">Delete</button>
+    </div>`).join('');
+}
+async function deleteQuestion(id){
+  await db.collection('questions').doc(id).delete();
+  renderQuestionList();
+}
+
+async function addResource(){
+  const type = document.getElementById('rType').value;
+  const category = document.getElementById('rCategory').value.trim();
+  const title = document.getElementById('rTitle').value.trim();
+  const link = document.getElementById('rLink').value.trim();
+  const msg = document.getElementById('rMsg');
+  if(!title || !link){ msg.innerHTML = '<div class="form-msg err">Add a title and a link.</div>'; return; }
+  try{
+    await db.collection('resources').add({
+      type, category, title, link,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    msg.innerHTML = '<div class="form-msg ok">Added.</div>';
+    document.getElementById('rTitle').value=''; document.getElementById('rLink').value=''; document.getElementById('rCategory').value='';
+    renderResourceListAdmin();
+  }catch(err){
+    msg.innerHTML = `<div class="form-msg err">${err.message}</div>`;
+  }
+}
+async function renderResourceListAdmin(){
+  const holder = document.getElementById('resourceList');
+  holder.innerHTML = '<p>Loading…</p>';
+  const snap = await db.collection('resources').get();
+  const resources = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if(resources.length===0){ holder.innerHTML='<p>Nothing added yet.</p>'; return; }
+  holder.innerHTML = `<div class="resource-list">` + resources.map(r=>`
+    <div class="resource-item">
+      <div><div class="rtitle">${r.title}</div><div class="rmeta">${r.type==='paper'?'Model paper':'PDF notes'} · ${r.category||''}</div></div>
+      <button class="btn btn-danger btn-sm" onclick="deleteResource('${r.id}')">Delete</button>
+    </div>`).join('') + `</div>`;
+}
+async function deleteResource(id){
+  await db.collection('resources').doc(id).delete();
+  renderResourceListAdmin();
+}
+
+async function renderPaymentRequests(){
+  const holder = document.getElementById('paymentRequestsList');
+  holder.innerHTML = '<p>Loading…</p>';
+
+  try{
+    const snap = await db.collection('paymentRequests').orderBy('createdAt','desc').get();
+    const requests = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+
+    if(requests.length===0){
+      holder.innerHTML = '<p>No payment requests yet.</p>';
+      return;
+    }
+
+    holder.innerHTML = `<div class="resource-list">` + requests.map(r => `
+      <div class="resource-item" style="align-items:flex-start;">
+        <div style="min-width:240px; flex:1;">
+          <div class="rtitle">${r.name||''} · ₹${r.amount||1499}</div>
+          <div class="rmeta">${r.email||''}</div>
+          <div class="rmeta">UTR: ${r.utr||'—'} · Date: ${r.paymentDate||'—'}</div>
+          <div class="rmeta">Status: <strong>${r.status||'pending'}</strong></div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          ${r.status==='pending' ? `
+            <button class="btn btn-primary btn-sm" onclick="approvePayment('${r.id}','${r.uid}')">Verify &amp; activate</button>
+            <button class="btn btn-danger btn-sm" onclick="rejectPayment('${r.id}')">Reject</button>
+          ` : ''}
+        </div>
+      </div>
+    `).join('') + `</div>`;
+  }catch(err){
+    holder.innerHTML = `<div class="form-msg err">${err.message}</div>`;
+  }
+}
+
+async function approvePayment(requestId, uid){
+  if(!confirm('Confirm that you have independently verified this payment and want to activate Complete Prep?')) return;
+
+  try{
+    await db.collection('users').doc(uid).update({ plan:'paid' });
+    await db.collection('paymentRequests').doc(requestId).update({
+      status:'verified',
+      verifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      verifiedBy: currentUser.uid
+    });
+    renderPaymentRequests();
+    renderAspirantTable();
+  }catch(err){
+    alert(err.message);
+  }
+}
+
+async function rejectPayment(requestId){
+  if(!confirm('Reject this payment request?')) return;
+
+  try{
+    await db.collection('paymentRequests').doc(requestId).update({
+      status:'rejected',
+      rejectedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      verifiedBy: currentUser.uid
+    });
+    renderPaymentRequests();
+  }catch(err){
+    alert(err.message);
+  }
+}
+
+/* ---------------- init ---------------- */
+renderNav();
+showView('home');
+</script>
+</body>
+</html>
