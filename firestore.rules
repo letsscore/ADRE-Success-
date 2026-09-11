@@ -3,95 +3,229 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // =========================================================
+    // COMMON FUNCTIONS
+    // =========================================================
+
     function signedIn() {
       return request.auth != null;
     }
 
+    function userDoc() {
+      return get(
+        /databases/$(database)/documents/users/$(request.auth.uid)
+      );
+    }
+
     function admin() {
       return signedIn()
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+        && exists(
+          /databases/$(database)/documents/users/$(request.auth.uid)
+        )
+        && userDoc().data.isAdmin == true;
     }
 
-    function myUser() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    function activeUser() {
+      return signedIn()
+        && exists(
+          /databases/$(database)/documents/users/$(request.auth.uid)
+        )
+        && userDoc().data.suspended != true;
     }
+
+    function paidUser() {
+      return activeUser()
+        && userDoc().data.plan == "paid";
+    }
+
+
+    // =========================================================
+    // USERS
+    // =========================================================
 
     match /users/{uid} {
+
+      // New student registration
       allow create: if signedIn()
         && request.auth.uid == uid
         && request.resource.data.keys().hasOnly([
-          'email', 'name', 'plan', 'isAdmin', 'createdAt'
+          'email',
+          'name',
+          'plan',
+          'isAdmin',
+          'suspended',
+          'createdAt'
         ])
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.plan == 'free'
-        && request.resource.data.isAdmin == false;
+        && request.resource.data.isAdmin == false
+        && request.resource.data.suspended == false;
 
-      allow read: if signedIn() && (request.auth.uid == uid || admin());
-
-      allow update: if signedIn() && (
-        admin()
-        || (
+      // User can read own profile.
+      // Admin can read every profile.
+      allow read: if signedIn()
+        && (
           request.auth.uid == uid
-          && request.resource.data.email == resource.data.email
-          && request.resource.data.plan == resource.data.plan
-          && request.resource.data.isAdmin == resource.data.isAdmin
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
-        )
-      );
+          || admin()
+        );
 
+      // Admin can manage users.
+      //
+      // Normal user can ONLY change their name.
+      // They cannot change:
+      // - plan
+      // - isAdmin
+      // - suspended
+      // - email
+      allow update: if signedIn()
+        && (
+          admin()
+          ||
+          (
+            request.auth.uid == uid
+            && request.resource.data.email == resource.data.email
+            && request.resource.data.plan == resource.data.plan
+            && request.resource.data.isAdmin == resource.data.isAdmin
+            && request.resource.data.suspended == resource.data.suspended
+            && request.resource.data.diff(resource.data)
+                .affectedKeys()
+                .hasOnly(['name'])
+          )
+        );
+
+      // Only admin can delete a Firestore user profile.
       allow delete: if admin();
     }
 
-    match /questions/{questionId} {
-      allow read: if signedIn() && (
-        admin()
-        || resource.data.tier == 'free'
-        || (resource.data.tier == 'paid' && myUser().data.plan == 'paid')
-      );
 
+    // =========================================================
+    // QUESTIONS
+    // =========================================================
+
+    match /questions/{questionId} {
+
+      // Admin sees everything.
+      //
+      // Free users:
+      //   tier == "free"
+      //
+      // Paid users:
+      //   tier == "free" OR tier == "paid"
+      allow read: if admin()
+        || (
+          activeUser()
+          && resource.data.tier == "free"
+        )
+        || (
+          paidUser()
+          && resource.data.tier == "paid"
+        );
+
+      // Only admin can add/edit/delete questions.
       allow create, update, delete: if admin();
     }
+
+
+    // =========================================================
+    // PDF NOTES / MODEL PAPERS / RESOURCES
+    // =========================================================
 
     match /resources/{resourceId} {
-      allow read: if signedIn() && (
-        admin()
-        || myUser().data.plan == 'paid'
-      );
 
+      // Admin can see everything.
+      // Only paid students can access resources.
+      allow read: if admin()
+        || paidUser();
+
+      // Only admin can add/edit/delete resources.
       allow create, update, delete: if admin();
     }
 
+
+    // =========================================================
+    // PAYMENT REQUESTS
+    // =========================================================
+
     match /paymentRequests/{requestId} {
-      allow create: if signedIn()
+
+      // Student can submit a payment request.
+      //
+      // Amount MUST be exactly ₹749.50.
+      // Status MUST initially be "pending".
+      allow create: if activeUser()
         && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email == request.auth.token.email
         && request.resource.data.amount == 749.50
-        && request.resource.data.status == 'pending'
+        && request.resource.data.status == "pending"
         && request.resource.data.keys().hasOnly([
-          'uid', 'name', 'email', 'amount', 'utr',
-          'paymentDate', 'status', 'createdAt'
+          'uid',
+          'name',
+          'email',
+          'amount',
+          'utr',
+          'paymentDate',
+          'status',
+          'createdAt'
         ]);
 
+      // Student can see only their own payment request.
+      // Admin can see all payment requests.
       allow read: if signedIn()
-        && (resource.data.uid == request.auth.uid || admin());
+        && (
+          resource.data.uid == request.auth.uid
+          || admin()
+        );
 
+      // ONLY admin can approve/reject/edit payment requests.
       allow update, delete: if admin();
     }
 
+
+    // =========================================================
+    // ACTIVITY LOGS
+    // =========================================================
+
     match /activities/{activityId} {
+
+      // Student can create their own activity log.
+      // Admin can also create logs.
       allow create: if signedIn()
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.type is string
         && request.resource.data.keys().hasOnly([
-          'uid', 'email', 'type', 'name', 'plan', 'isAdmin',
-          'tab', 'score', 'total', 'resourceId', 'title',
-          'resourceType', 'amount', 'utrLast4', 'paymentDate',
-          'targetUid', 'suspended', 'requestId', 'category',
-          'tier', 'questionId', 'createdAt', 'added'
+          'uid',
+          'email',
+          'type',
+          'name',
+          'plan',
+          'isAdmin',
+          'tab',
+          'score',
+          'total',
+          'resourceId',
+          'title',
+          'resourceType',
+          'amount',
+          'utrLast4',
+          'paymentDate',
+          'targetUid',
+          'suspended',
+          'requestId',
+          'category',
+          'tier',
+          'questionId',
+          'createdAt',
+          'added'
         ]);
 
+      // Activity history is ADMIN ONLY.
       allow read, update, delete: if admin();
     }
+
+
+    // =========================================================
+    // DEFAULT DENY
+    // =========================================================
 
     match /{document=**} {
       allow read, write: if false;
