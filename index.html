@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ADRE Success — Assam Direct Recruitment Examination Preparation</title>
+<!-- ADRE Success Spark build: Free question fallback + fixed upgrade/payment flow -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -140,6 +141,12 @@
   .opt-row{display:flex; gap:8px; align-items:center; margin-bottom:8px;}
   .opt-row input[type=text]{flex:1;}
   .small-note{font-size:0.8rem; color:var(--ink-soft); margin-top:6px;}
+  .admin-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 24px;}
+  @media (min-width:760px){.admin-stats{grid-template-columns:repeat(3,1fr);}}
+  .stat-card{appearance:none;text-align:left;background:var(--white);border:1px solid var(--line);border-radius:14px;padding:18px;cursor:pointer;font-family:var(--sans);color:var(--ink);}
+  .stat-card:hover{border-color:var(--tea-green);transform:translateY(-1px);}
+  .stat-card strong{display:block;font-family:var(--serif);font-size:1.55rem;color:var(--tea-green-dark);}
+  .stat-card span{display:block;font-size:.78rem;color:var(--ink-soft);margin-top:4px;}
 
   footer{background:var(--tea-green-dark); color:rgba(250,246,237,0.7); padding:32px 0; margin-top:40px; font-size:0.85rem;}
   footer .wrap{display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
@@ -313,7 +320,7 @@
   <!-- ADMIN DASHBOARD -->
   <section id="view-admin" class="hidden">
     <div class="dash-head">
-      <h1>Admin backend</h1><p class="small-note">Spark plan mode: admin controls use secure Firestore rules. Firebase Authentication deletion and server-side force sign-out require Cloud Functions.</p><p class="small-note">Full account, course, payment and activity controls</p>
+      <h1>ADRE Success — Admin Control Panel</h1><p class="small-note">Spark plan mode: admin controls use secure Firestore rules. Firebase Authentication deletion and server-side force sign-out require Cloud Functions.</p><p class="small-note">Full account, course, payment and activity controls</p>
       <button class="btn btn-ghost btn-sm" onclick="adminLogout()">Log out</button>
     </div>
     <div class="tabs">
@@ -323,6 +330,8 @@
       <button class="tab-btn" data-tab="payments" onclick="switchAdminTab('payments')">Payments</button>
       <button class="tab-btn" data-tab="activities" onclick="switchAdminTab('activities')">Activities</button>
     </div>
+
+    <div id="adminOverview"></div>
 
     <div id="adminAspirants">
       <div class="admin-panel">
@@ -358,7 +367,7 @@
           <div class="opt-row"><input type="radio" name="qCorrect" value="2"><input type="text" class="qOptInput" placeholder="Option C"></div>
           <div class="opt-row"><input type="radio" name="qCorrect" value="3"><input type="text" class="qOptInput" placeholder="Option D"></div>
         </div>
-        <p class="small-note">Free course: maximum 50 questions per subject. Paid Complete Prep: maximum 365 online questions per subject. General Knowledge includes Social Studies. Select the radio button next to the correct option.</p>
+        <p class="small-note">The Free question bank is built into this HTML and is also seedable into Firestore. Free users can practice immediately even before Firestore seeding. Free course: maximum 50 questions per subject. Paid Complete Prep: maximum 365 online questions per subject. General Knowledge includes Social Studies. Select the radio button next to the correct option.</p>
         <button class="btn btn-primary" style="margin-top:12px;" onclick="addQuestion()">Add question</button>
         <button class="btn btn-ghost" style="margin-top:12px; margin-left:8px;" onclick="seedFreeGKQuestions()">Add 50 Free GK Questions</button>
         <button class="btn btn-ghost" style="margin-top:12px; margin-left:8px;" onclick="seedFreeEnglishQuestions()">Add 50 Free English Questions</button>
@@ -548,10 +557,10 @@ async function handleSignup(){
   try{
     const cred = await auth.createUserWithEmailAndPassword(email, pw);
     await db.collection('users').doc(cred.user.uid).set({
-      email, name, plan: 'free', isAdmin: false,
+      email, name, plan: 'free', isAdmin: false, suspended: false,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    currentUser = { uid: cred.user.uid, email, name, plan: 'free', isAdmin: false };
+    currentUser = { uid: cred.user.uid, email, name, plan: 'free', isAdmin: false, suspended: false };
     await logActivity('signup', {name});
     renderNav();
     await openDashboard();
@@ -568,12 +577,16 @@ async function handleLogin(){
   try{
     const cred = await auth.signInWithEmailAndPassword(email, pw);
     const doc = await db.collection('users').doc(cred.user.uid).get();
+    if(!doc.exists){
+      await auth.signOut();
+      throw new Error('Authentication succeeded, but your Firestore profile is missing. An administrator must create users/' + cred.user.uid + ' before this account can use ADRE Success.');
+    }
     const d = doc.data() || {};
     if(d.suspended && !d.isAdmin){ await auth.signOut(); throw new Error('Your account is currently suspended. Please contact support.'); }
-    currentUser = { uid: cred.user.uid, email: cred.user.email, name: d.name || '', plan: d.plan || 'free', isAdmin: d.isAdmin || false };
+    currentUser = { uid: cred.user.uid, email: cred.user.email, name: d.name || '', plan: d.plan || 'free', isAdmin: d.isAdmin === true, suspended: d.suspended === true };
     await logActivity('login', {name: currentUser.name, plan: currentUser.plan, isAdmin: currentUser.isAdmin});
     renderNav();
-    if(currentUser.isAdmin) goAdmin();
+    if(currentUser.isAdmin) await goAdmin();
     else await openDashboard();
   }catch(err){
     msg.innerHTML = `<div class="form-msg err">${friendlyFirebaseError(err)}</div>`;
@@ -596,11 +609,42 @@ async function adminLogout(){
   showView('home');
 }
 
-function goAdmin(){
-  if(!currentUser){ showAuth('login'); return; }
-  if(!currentUser.isAdmin){ alert("This account doesn't have admin access."); return; }
-  showView('admin');
-  switchAdminTab('aspirants');
+async function refreshCurrentUserProfile(){
+  if(!auth.currentUser) return null;
+  const ref = db.collection('users').doc(auth.currentUser.uid);
+  const doc = await ref.get();
+  if(!doc.exists) return null;
+  const d = doc.data() || {};
+  currentUser = {
+    uid: auth.currentUser.uid,
+    email: auth.currentUser.email || d.email || '',
+    name: d.name || '',
+    plan: d.plan || 'free',
+    isAdmin: d.isAdmin === true,
+    suspended: d.suspended === true
+  };
+  return currentUser;
+}
+
+async function goAdmin(){
+  if(!auth.currentUser){ showAuth('login'); return; }
+  try{
+    const profile = await refreshCurrentUserProfile();
+    if(!profile){
+      alert('Your Firebase Authentication account exists, but its Firestore user profile does not exist yet. Create users/' + auth.currentUser.uid + ' in Firestore with isAdmin = true, plan = free, suspended = false, email and name, then log out and log in again.');
+      return;
+    }
+    if(!profile.isAdmin){
+      alert('This account is not marked as an administrator. In Firebase Console → Firestore Database → users → your UID, set isAdmin to true. Then log out and log in again.');
+      return;
+    }
+    renderNav();
+    showView('admin');
+    switchAdminTab(adminTab || 'aspirants');
+    await renderAdminOverview();
+  }catch(err){
+    alert('Unable to check admin access: ' + friendlyFirebaseError(err));
+  }
 }
 
 /* ---------------- aspirant dashboard ---------------- */
@@ -629,12 +673,7 @@ async function renderPractice(){
   const holder = document.getElementById('dashPractice');
   logActivity('practice_start', {plan: currentUser?.plan || 'free'});
   holder.innerHTML = '<p>Loading questions…</p>';
-  const tier = currentUser.plan === 'paid' ? 'paid' : 'free';
-  const snap = await db.collection('questions').where('tier','==',tier).get();
-  const questions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-  // Free course = up to 50 questions in EACH ADRE subject category.
-  // Complete Prep = up to 365 questions in EACH ADRE subject category.
   const categories = [
     'General Knowledge',
     'General English',
@@ -643,34 +682,87 @@ async function renderPractice(){
     'Mental Ability & Logical Reasoning'
   ];
   const perSubjectLimit = currentUser.plan === 'paid' ? 365 : 50;
+  const tier = currentUser.plan === 'paid' ? 'paid' : 'free';
+
+  let questions = [];
+
+  try {
+    const snap = await db.collection('questions').where('tier','==',tier).get();
+    questions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(err) {
+    console.warn('Firestore question read failed:', err);
+  }
+
+  // Built-in Free course question bank. This guarantees that the
+  // Free course is usable even before the admin seeds Firestore.
+  if(tier === 'free'){
+    const builtIn = [
+      ...FREE_GK_QUESTIONS.map((q,i)=>({...q, category:'General Knowledge', tier:'free', id:`builtin-gk-${i+1}`})),
+      ...FREE_ENGLISH_QUESTIONS.map((q,i)=>({...q, category:'General English', tier:'free', id:`builtin-eng-${i+1}`})),
+      ...FREE_MATH_QUESTIONS.map((q,i)=>({...q, category:'General Mathematics', tier:'free', id:`builtin-math-${i+1}`})),
+      ...FREE_COMPUTER_QUESTIONS.map((q,i)=>({...q, category:'Basic Computer Knowledge', tier:'free', id:`builtin-computer-${i+1}`})),
+      ...FREE_REASONING_QUESTIONS.map((q,i)=>({...q, category:'Mental Ability & Logical Reasoning', tier:'free', id:`builtin-reasoning-${i+1}`}))
+    ];
+
+    // Prefer Firestore questions, then fill any missing category slots
+    // from the built-in bank.
+    const combined = [];
+    categories.forEach(cat=>{
+      const firestoreCat = questions.filter(q=>q.category===cat).slice(0, perSubjectLimit);
+      const firestoreTexts = new Set(firestoreCat.map(q=>q.question));
+      const fallbackCat = builtIn
+        .filter(q=>q.category===cat && !firestoreTexts.has(q.question))
+        .slice(0, Math.max(0, perSubjectLimit - firestoreCat.length));
+      combined.push(...firestoreCat, ...fallbackCat);
+    });
+    questions = combined;
+  }
+
   let visible = [];
-  categories.forEach(cat => {
+  categories.forEach(cat=>{
     visible.push(...questions.filter(q => q.tier === tier && q.category === cat).slice(0, perSubjectLimit));
   });
 
   if(visible.length === 0){
-    holder.innerHTML = '<p>No questions have been added yet — check back soon.</p>';
+    holder.innerHTML = '<p>No questions are available right now.</p>';
     return;
   }
-  const cats = [...new Set(visible.map(q=>q.category))];
-  let html = `<div class="score-pill" id="scorePill">Score: — </div>`;
+
+  const cats = categories.filter(cat => visible.some(q=>q.category===cat));
+  let html = `<div class="score-pill" id="scorePill">Score: —</div>`;
+  html += `<p class="small-note" style="margin-bottom:18px;">
+    ${tier==='free'
+      ? 'Free course: up to 50 questions in each of the 5 ADRE categories.'
+      : 'Complete Prep: up to 365 questions in each of the 5 ADRE categories.'}
+  </p>`;
+
   cats.forEach(cat=>{
     html += `<h3 style="font-family:var(--serif); margin:18px 0 10px;">${cat}</h3>`;
-    visible.filter(q=>q.category===cat).forEach(q=>{
-      html += `<div class="qcard" id="qc-${q.id}">
+    visible.filter(q=>q.category===cat).forEach((q,idx)=>{
+      const safeId = String(q.id).replace(/[^a-zA-Z0-9_-]/g,'_');
+      html += `<div class="qcard" id="qc-${safeId}">
         <p class="qtext">${q.question} ${q.tier==='paid' ? '<span class="badge paid">Paid</span>' : ''}</p>`;
-      q.options.forEach((opt,i)=>{
-        html += `<label class="opt"><input type="radio" name="ans-${q.id}" value="${i}">${opt}</label>`;
+      (q.options || []).forEach((opt,i)=>{
+        html += `<label class="opt"><input type="radio" name="ans-${safeId}" value="${i}">${opt}</label>`;
       });
-      html += `<div class="result right">Correct!</div><div class="result wrong">Not quite — correct answer: ${q.options[q.correct]}</div>
+      html += `<div class="result right">Correct!</div><div class="result wrong">Not quite — correct answer: ${(q.options||[])[q.correct]}</div>
       </div>`;
+      q._safeId = safeId;
     });
   });
-  html += `<button class="btn btn-primary" onclick="checkAnswers()">Check my answers</button>`;
+
+  html += `<button type="button" class="btn btn-primary" onclick="checkAnswers()">Check my answers</button>`;
+  if(tier==='free'){
+    html += `<div class="lock-card" style="margin-top:22px;">
+      <h3>Want the Complete Prep course?</h3>
+      <p>Get 365 online questions per category, PDF notes and 5 PDF model papers for ₹749.50.</p>
+      <button type="button" class="btn btn-primary" onclick="openPaymentFromAnyTab();return false;">Upgrade to Complete Prep — ₹749.50</button>
+    </div>`;
+  }
+
   holder.innerHTML = html;
   window._visibleQuestions = visible;
 }
-
 function checkAnswers(){
   const questions = window._visibleQuestions || [];
   let correct = 0;
@@ -693,7 +785,7 @@ async function renderResourcesForAspirant(type){
     holder.innerHTML = `<div class="lock-card">
       <h3>Complete Prep only</h3>
       <p>${type==='notes' ? 'Downloadable ADRE PDF notes are' : 'ADRE model question papers are'} part of the paid course.</p>
-      <button class="btn btn-primary" onclick="upgradeToPaid()">Upgrade to Complete Prep — ₹749.50</button>
+      <button class="btn btn-primary" onclick="openPaymentFromAnyTab();return false;">Upgrade to Complete Prep — ₹749.50</button>
     </div>`;
     return;
   }
@@ -709,73 +801,30 @@ async function renderResourcesForAspirant(type){
 }
 
 async function upgradeToPaid(){
-  if(!currentUser) return;
-  showPaymentPanel();
+  openPaymentFromAnyTab();
 }
 
-function showPaymentPanel(){
-  const holder = document.getElementById('dashPractice');
-  const existing = document.getElementById('paymentPanel');
-  if(existing){ existing.scrollIntoView({behavior:'smooth',block:'start'}); return; }
-
-  const panel = document.createElement('div');
-  panel.id = 'paymentPanel';
-  panel.className = 'admin-panel';
-  panel.innerHTML = `
-    <h3>Complete Prep — ₹749.50</h3>
-    <p style="color:var(--ink-soft);font-size:.9rem;margin-bottom:14px;">Pay by UPI. Access is activated only after admin verification.</p>
-    <div style="background:var(--paper-warm);border-radius:12px;padding:16px;margin-bottom:16px;">
-      <div style="font-size:.82rem;color:var(--ink-soft);">UPI payment number</div>
-      <div style="font-family:var(--serif);font-size:1.45rem;font-weight:600;margin-top:4px;">9678945621</div>
-      <div style="font-size:.82rem;color:var(--ink-soft);margin-top:6px;">Pay exactly ₹749.50.</div>
-    </div>
-    <div class="field"><label>UPI transaction / UTR number</label><input type="text" id="paymentUtr" placeholder="Enter UTR / transaction ID"></div>
-    <div class="field"><label>Payment date</label><input type="date" id="paymentDate"></div>
-    <div id="paymentMsg"></div>
-    <button class="btn btn-primary" onclick="submitPaymentRequest()">Submit for verification</button>
-    <button class="btn btn-ghost" style="margin-left:8px;" onclick="closePaymentPanel()">Cancel</button>
-    <p class="small-note" style="margin-top:14px;">Then send the payment receipt/screenshot to WhatsApp <strong>7002137940</strong>. Admin will cross-verify the payment before activation.</p>
-  `;
-  holder.prepend(panel);
-  panel.scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-function closePaymentPanel(){
-  const panel = document.getElementById('paymentPanel');
-  if(panel) panel.remove();
-}
-
-async function submitPaymentRequest(){
-  const utr = document.getElementById('paymentUtr').value.trim();
-  const paymentDate = document.getElementById('paymentDate').value;
-  const msg = document.getElementById('paymentMsg');
-  msg.innerHTML = '';
-
-  if(!utr || !paymentDate){
-    msg.innerHTML = '<div class="form-msg err">Please enter the UTR/transaction ID and payment date.</div>';
+function openPaymentFromAnyTab(){
+  if(!currentUser){
+    showAuth('login');
     return;
   }
 
-  try{
-    await db.collection('paymentRequests').add({
-      uid: currentUser.uid,
-      name: currentUser.name,
-      email: currentUser.email,
-      amount: 749.50,
-      utr,
-      paymentDate,
-      status: 'pending',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    msg.innerHTML = '<div class="form-msg ok">Payment submitted for verification. Please send the receipt to WhatsApp 7002137940. Access will be activated after admin verification.</div>';
-  }catch(err){
-    msg.innerHTML = `<div class="form-msg err">${err.message}</div>`;
-  }
+  // The old version inserted the payment panel inside the hidden
+  // Practice tab when the user clicked Upgrade from PDF Notes/Model Papers.
+  // Switch to Practice first so the payment panel is always visible.
+  dashTab = 'practice';
+  switchDashTab('practice');
+
+  setTimeout(()=>{
+    showPaymentPanel();
+  }, 60);
 }
 
 function showPaymentPanel(){
   const holder = document.getElementById('dashPractice');
   const existing = document.getElementById('paymentPanel');
+
   if(existing){
     existing.scrollIntoView({behavior:'smooth', block:'start'});
     return;
@@ -786,24 +835,24 @@ function showPaymentPanel(){
   panel.className = 'admin-panel';
   panel.style.marginBottom = '24px';
   panel.innerHTML = `
-    <h3>Complete Prep — Payment</h3>
-    <p style="color:var(--ink-soft); font-size:0.9rem; margin-bottom:14px;">
-      Pay the course fee of <strong>₹749.50</strong> by UPI. Your Complete Prep access will be activated
-      only after the admin verifies your payment.
+    <h3>Complete Prep — ₹749.50</h3>
+    <p style="color:var(--ink-soft);font-size:.9rem;margin-bottom:14px;">
+      Pay exactly ₹749.50 by UPI. Access is activated only after admin verification.
     </p>
 
-    <div style="background:var(--paper-warm); border-radius:12px; padding:16px; margin-bottom:16px;">
-      <div style="font-size:0.82rem; color:var(--ink-soft);">UPI payment number</div>
-      <div style="font-family:var(--serif); font-size:1.45rem; font-weight:600; margin-top:4px;">9678945621</div>
-      <div style="font-size:0.82rem; color:var(--ink-soft); margin-top:6px;">
-        Send exactly ₹749.50, then submit your payment details below.
+    <div style="background:var(--paper-warm);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:.82rem;color:var(--ink-soft);">UPI payment number</div>
+      <div style="font-family:var(--serif);font-size:1.45rem;font-weight:600;margin-top:4px;">9678945621</div>
+      <div style="font-size:.82rem;color:var(--ink-soft);margin-top:6px;">
+        Send exactly ₹749.50, then enter the UTR/transaction ID and payment date.
       </div>
     </div>
 
     <div class="field">
       <label>UPI transaction / UTR number</label>
-      <input type="text" id="paymentUtr" placeholder="Enter your UTR / transaction ID">
+      <input type="text" id="paymentUtr" placeholder="Enter UTR / transaction ID">
     </div>
+
     <div class="field">
       <label>Payment date</label>
       <input type="date" id="paymentDate">
@@ -811,12 +860,16 @@ function showPaymentPanel(){
 
     <div id="paymentMsg"></div>
 
-    <button class="btn btn-primary" onclick="submitPaymentRequest()">Submit payment for verification</button>
-    <button class="btn btn-ghost" style="margin-left:8px;" onclick="closePaymentPanel()">Cancel</button>
+    <button type="button" class="btn btn-primary" onclick="submitPaymentRequest()">
+      Submit payment for verification
+    </button>
+    <button type="button" class="btn btn-ghost" style="margin-left:8px;" onclick="closePaymentPanel()">
+      Cancel
+    </button>
 
     <p class="small-note" style="margin-top:14px;">
-      After submission, send the payment receipt/screenshot to the admin WhatsApp number
-      <strong>7002137940</strong>. The admin will cross-verify the payment and activate your paid course.
+      After submission, send the payment receipt/screenshot to WhatsApp
+      <strong>7002137940</strong>. The admin will cross-verify the payment before activation.
     </p>
   `;
 
@@ -830,10 +883,19 @@ function closePaymentPanel(){
 }
 
 async function submitPaymentRequest(){
-  const utr = document.getElementById('paymentUtr').value.trim();
-  const paymentDate = document.getElementById('paymentDate').value;
+  if(!currentUser){
+    showAuth('login');
+    return;
+  }
+
+  const utrEl = document.getElementById('paymentUtr');
+  const dateEl = document.getElementById('paymentDate');
   const msg = document.getElementById('paymentMsg');
 
+  if(!utrEl || !dateEl || !msg) return;
+
+  const utr = utrEl.value.trim();
+  const paymentDate = dateEl.value;
   msg.innerHTML = '';
 
   if(!utr || !paymentDate){
@@ -844,7 +906,7 @@ async function submitPaymentRequest(){
   try{
     await db.collection('paymentRequests').add({
       uid: currentUser.uid,
-      name: currentUser.name,
+      name: currentUser.name || '',
       email: currentUser.email,
       amount: 749.50,
       utr,
@@ -852,15 +914,52 @@ async function submitPaymentRequest(){
       status: 'pending',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    await logActivity('payment_submit', {amount:749.50, utrLast4: utr.slice(-4), paymentDate});
 
-    msg.innerHTML = '<div class="form-msg ok">Payment submitted for verification. Please send your payment receipt to WhatsApp 7002137940. Your paid course will be activated after admin verification.</div>';
+    await logActivity('payment_submit', {
+      amount:749.50,
+      utrLast4:utr.slice(-4),
+      paymentDate
+    });
+
+    msg.innerHTML = `
+      <div class="form-msg ok">
+        Payment submitted for verification. Please send your receipt to WhatsApp
+        <strong>7002137940</strong>. Your Complete Prep access will be activated
+        after admin verification.
+      </div>`;
   }catch(err){
     msg.innerHTML = `<div class="form-msg err">${err.message}</div>`;
   }
 }
-
 /* ---------------- admin ---------------- */
+async function renderAdminOverview(){
+  const view = document.getElementById('adminOverview');
+  if(!view) return;
+  view.innerHTML = '<div class="admin-stats"><div class="stat-card"><strong>Loading…</strong><span>Aspirants</span></div><div class="stat-card"><strong>—</strong><span>Paid</span></div><div class="stat-card"><strong>—</strong><span>Pending payments</span></div><div class="stat-card"><strong>—</strong><span>Questions</span></div></div>';
+  try{
+    const [usersSnap, paySnap, qSnap, resSnap] = await Promise.all([
+      db.collection('users').get(),
+      db.collection('paymentRequests').get(),
+      db.collection('questions').get(),
+      db.collection('resources').get()
+    ]);
+    const users = usersSnap.docs.map(d=>d.data());
+    const paid = users.filter(u=>u.plan==='paid').length;
+    const pending = paySnap.docs.filter(d=>(d.data().status||'pending')==='pending').length;
+    view.innerHTML = `
+      <div class="admin-stats">
+        <button class="stat-card" onclick="switchAdminTab('aspirants')"><strong>${users.length}</strong><span>Total aspirants</span></button>
+        <button class="stat-card" onclick="switchAdminTab('aspirants')"><strong>${paid}</strong><span>Complete Prep</span></button>
+        <button class="stat-card" onclick="switchAdminTab('payments')"><strong>${pending}</strong><span>Pending payments</span></button>
+        <button class="stat-card" onclick="switchAdminTab('questions')"><strong>${qSnap.size}</strong><span>Questions</span></button>
+        <button class="stat-card" onclick="switchAdminTab('resources')"><strong>${resSnap.size}</strong><span>PDF resources</span></button>
+        <button class="stat-card" onclick="switchAdminTab('activities')"><strong>View</strong><span>Activity logs</span></button>
+      </div>`;
+  }catch(err){
+    view.innerHTML = `<div class="form-msg err">Admin overview could not load: ${friendlyFirebaseError(err)}</div>`;
+  }
+}
+
 function switchAdminTab(tab){
   adminTab = tab;
   document.querySelectorAll('#view-admin .tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
@@ -874,6 +973,7 @@ function switchAdminTab(tab){
   if(tab==='resources') renderResourceListAdmin();
   if(tab==='payments') renderPaymentRequests();
   if(tab==='activities') renderActivities();
+  renderAdminOverview();
 }
 
 async function renderAspirantTable(){
