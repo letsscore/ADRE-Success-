@@ -13,18 +13,19 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
   :root{
-    --tea-green: #234B3B;
-    --tea-green-dark: #153025;
-    --river-blue: #1F5C66;
-    --sunrise: #D79A3C;
-    --sunrise-soft: #EFC98A;
-    --paper: #FAF6ED;
-    --paper-warm: #F1E9D6;
-    --ink: #201C15;
-    --ink-soft: #5A5346;
-    --line: rgba(32,28,21,0.12);
-    --white: #FFFEFB;
-    --red: #B3432B;
+    --tea-green: #164A3B;
+    --tea-green-dark: #0A2A21;
+    --river-blue: #1F3F6B;
+    --sunrise: #B8862F;
+    --sunrise-soft: #D9BD84;
+    --paper: #EFE8DA;
+    --paper-warm: #E3D6BC;
+    --ink: #1A1720;
+    --ink-soft: #4A4456;
+    --line: rgba(26,23,32,0.14);
+    --white: #F5F0E6;
+    --red: #9C3A2E;
+    --plum: #4C2C50;
     --serif: 'Newsreader', Georgia, serif;
     --sans: 'IBM Plex Sans', -apple-system, sans-serif;
   }
@@ -57,7 +58,7 @@
   section{padding:56px 0;}
 
   /* ---- Home ---- */
-  .hero{padding:56px 0 64px; background:radial-gradient(ellipse at top right, rgba(215,154,60,0.16), transparent 55%), var(--paper); border-bottom:1px solid var(--line);}
+  .hero{padding:56px 0 64px; background:radial-gradient(ellipse at top right, rgba(184,134,47,0.18), transparent 55%), radial-gradient(ellipse at left, rgba(31,63,107,0.12), transparent 50%), var(--paper); border-bottom:1px solid var(--line);}
   .eyebrow{font-size:0.86rem; color:var(--river-blue); font-weight:600; margin-bottom:14px;}
   .hero h1{font-family:var(--serif); font-weight:600; font-size:clamp(1.9rem,5vw,2.9rem); line-height:1.1; max-width:16ch;}
   .hero p.lead{margin-top:18px; font-size:1.05rem; color:var(--ink-soft); max-width:48ch;}
@@ -90,8 +91,8 @@
   .field input, .field select, .field textarea{width:100%; padding:11px 13px; border:1px solid var(--line); border-radius:9px; font-family:var(--sans); font-size:0.94rem; background:var(--paper);}
   .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--sunrise); border-color:transparent;}
   .form-msg{font-size:0.85rem; padding:10px 12px; border-radius:8px; margin-bottom:14px;}
-  .form-msg.err{background:#F7E1DB; color:var(--red);}
-  .form-msg.ok{background:#E1EEE3; color:var(--tea-green-dark);}
+  .form-msg.err{background:#E9CFC7; color:var(--red);}
+  .form-msg.ok{background:#D2E0D9; color:var(--tea-green-dark);}
 
   .legal-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:24px;}
   .legal-card h3{font-family:var(--serif);font-size:1.2rem;margin-bottom:10px;}
@@ -216,7 +217,7 @@
         </div>
         <div class="plan-card featured">
           <h3>Complete Prep</h3>
-          <div class="plan-price">₹749.50</div>
+          <div class="plan-price">₹749</div>
           <ul>
             <li>Downloadable PDF notes covering the ADRE syllabus</li>
             <li>365 ADRE practice questions online in every ADRE subject category</li>
@@ -990,9 +991,9 @@ async function renderPractice(){
   if(tier==='free'){
     out += `<div class="lock-card" style="margin-top:22px;">
       <h3>Want the Complete Prep course?</h3>
-      <p>Get 365 online questions per subject, PDF notes and 5 PDF model papers for ₹749.50.</p>
+      <p>Get 365 online questions per subject, PDF notes and 5 PDF model papers for ₹749.</p>
       <button type="button" class="btn btn-primary"
-        onclick="openPaymentFromAnyTab();return false;">Upgrade to Complete Prep — ₹749.50</button>
+        onclick="openPaymentFromAnyTab();return false;">Upgrade to Complete Prep — ₹749</button>
     </div>`;
   }
 
@@ -1050,7 +1051,7 @@ async function renderResourcesForAspirant(type){
     holder.innerHTML = `<div class="lock-card">
       <h3>Complete Prep only</h3>
       <p>${type==='notes' ? 'Downloadable ADRE PDF notes are' : 'ADRE model question papers are'} part of the paid course.</p>
-      <button class="btn btn-primary" onclick="openPaymentFromAnyTab();return false;">Upgrade to Complete Prep — ₹749.50</button>
+      <button class="btn btn-primary" onclick="openPaymentFromAnyTab();return false;">Upgrade to Complete Prep — ₹749</button>
     </div>`;
     return;
   }
@@ -1156,16 +1157,16 @@ function showPaymentPanel(){
   panel.className = 'admin-panel';
   panel.style.marginBottom = '24px';
   panel.innerHTML = `
-    <h3>Complete Prep — ₹749.50</h3>
+    <h3>Complete Prep — ₹749</h3>
     <p style="color:var(--ink-soft);font-size:.9rem;margin-bottom:14px;">
-      Pay exactly ₹749.50 by UPI. Access is activated only after admin verification.
+      Pay exactly ₹749 by UPI. Access is activated only after admin verification.
     </p>
 
     <div style="background:var(--paper-warm);border-radius:12px;padding:16px;margin-bottom:16px;">
       <div style="font-size:.82rem;color:var(--ink-soft);">UPI payment number</div>
       <div style="font-family:var(--serif);font-size:1.45rem;font-weight:600;margin-top:4px;">9678945621</div>
       <div style="font-size:.82rem;color:var(--ink-soft);margin-top:6px;">
-        Send exactly ₹749.50, then enter the UTR/transaction ID and payment date.
+        Send exactly ₹749, then enter the UTR/transaction ID and payment date.
       </div>
     </div>
 
@@ -1229,7 +1230,7 @@ async function submitPaymentRequest(){
       uid: currentUser.uid,
       name: currentUser.name || '',
       email: currentUser.email,
-      amount: 749.50,
+      amount: 749,
       utr,
       paymentDate,
       status: 'pending',
@@ -1237,7 +1238,7 @@ async function submitPaymentRequest(){
     });
 
     await logActivity('payment_submit', {
-      amount:749.50,
+      amount:749,
       utrLast4:utr.slice(-4),
       paymentDate
     });
@@ -1308,7 +1309,7 @@ async function renderAspirantTable(){
       <td>${u.name||''}</td>
       <td>${u.email||''}</td>
       <td><span class="badge ${u.plan}">${u.plan}</span></td>
-      <td>${u.suspended ? '<span class="badge" style="background:#F7E1DB;color:var(--red)">Suspended</span>' : '<span class="badge free">Active</span>'}</td>
+      <td>${u.suspended ? '<span class="badge" style="background:#E9CFC7;color:var(--red)">Suspended</span>' : '<span class="badge free">Active</span>'}</td>
       <td>${u.createdAt ? u.createdAt.toDate().toLocaleDateString() : '—'}</td>
       <td>
         <button class="btn btn-ghost btn-sm" onclick="toggleUserPlan('${u.id}')">Toggle plan</button>
@@ -1805,7 +1806,7 @@ async function renderPaymentRequests(){
     holder.innerHTML = `<div class="resource-list">` + requests.map(r => `
       <div class="resource-item" style="align-items:flex-start;">
         <div style="min-width:240px; flex:1;">
-          <div class="rtitle">${r.name||''} · ₹${r.amount||749.50}</div>
+          <div class="rtitle">${r.name||''} · ₹${r.amount||749}</div>
           <div class="rmeta">${r.email||''}</div>
           <div class="rmeta">UTR: ${r.utr||'—'} · Date: ${r.paymentDate||'—'}</div>
           <div class="rmeta">Status: <strong>${r.status||'pending'}</strong></div>
