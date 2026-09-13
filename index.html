@@ -89,7 +89,14 @@
   .auth-card p.sub{font-size:0.88rem; color:var(--ink-soft); margin-bottom:20px;}
   .field{margin-bottom:14px;}
   .field label{display:block; font-size:0.84rem; font-weight:600; margin-bottom:6px;}
-  .field input, .field select, .field textarea{width:100%; padding:11px 13px; border:1px solid var(--line); border-radius:9px; font-family:var(--sans); font-size:0.94rem; background:var(--paper);}
+  .field input, .field select, .field textarea{width:100%; padding:11px 13px; border:1px solid var(--line); border-radius:9px; font-family:var(--sans); font-size:0.94rem; background:var(--paper); color:var(--ink);}
+  .field input::placeholder, .field textarea::placeholder{color:var(--ink-soft); opacity:1;}
+  .field input:-webkit-autofill, .field input:-webkit-autofill:hover, .field input:-webkit-autofill:focus{
+    -webkit-text-fill-color:var(--ink);
+    -webkit-box-shadow:0 0 0px 1000px var(--paper) inset;
+    box-shadow:0 0 0px 1000px var(--paper) inset;
+    transition:background-color 9999s ease-in-out 0s;
+  }
   .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--sunrise); border-color:transparent;}
   .form-msg{font-size:0.85rem; padding:10px 12px; border-radius:8px; margin-bottom:14px;}
   .form-msg.err{background:#3A211D; color:var(--red);}
